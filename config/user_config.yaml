@@ -1,0 +1,5 @@
+
+# ADB
+adb:
+  path: .\adb\adb.exe
+  device: 127.0.0.1:16384

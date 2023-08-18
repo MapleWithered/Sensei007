@@ -1,0 +1,11 @@
+pure-python-adb
+pyminitouch~=0.3.3
+opencv-contrib-python
+numpy~=1.25.2
+loguru~=0.7.0
+ruamel.yaml
+Pillow~=10.0.0
+matplotlib
+cnocr
+cnstd
+dpath

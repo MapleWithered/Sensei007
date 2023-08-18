@@ -1,0 +1,44 @@
+startup:
+  splash:
+    anchor: 1772-929-1869-1021-1692389438.png
+    enter: 782-911-1141-965-1692389460.png
+  announcement:
+    anchor: 169-121-498-180-1692395295.png
+    btn_close: 1684-126-1739-179-1692395301.png
+  main_menu:
+    anchor: 1793-31-1871-87-1692395603.png
+    pos_wake: 554-61
+navigation:
+  btn_main_menu: 1813-24-1905-65-1692396037.png
+  btn_back: 51-29-114-81-1692396068.png
+momotalk:
+  anchor: 206-144-530-208-1692396853.png
+  btn_contact_activated: 208-238-311-337-1692396868.png
+  btn_message_activated: 202-409-311-461-1692397185.png
+  btn_unread: 716-238-814-289-1692397059.png
+  step_unread:
+    1: 630-415-715-465-1692397452.png
+    2: 636-526-713-575-1692397454.png
+  btn_sorted: 950-246-972-284-1692397077.png
+  first_msg:
+    empty: 930-332-1002-413-1692397702.png
+    1: 934-335-1007-419-1692397844.png
+    sel_1: 932-334-1012-420-1692397975.png
+  second_msg: 970-490
+  dialog_box: 1025-225-1713-932
+  reply_title: 1169-472-1418-524-1692398043.png
+  reply_dy: 80
+  story_title: 1167-781-1318-834-1692400193.png
+  story_dy: 40
+  story_enter: 1230-809-1528-882-1692400575.png
+  btn_close: 1653-148-1708-202-1692402346.png
+story:
+  menu_anchor: 1759-33-1849-85-1692400713.png
+  btn_skip: 1781-151-1852-203-1692400746.png
+  confirm_skip: 1053-745-1269-824-1692400776.png
+award:
+  anchor: 849-219-1019-275-1692401349.png
+main_menu:
+  btn_cafe: 117-962-153-1005-1692402496.png
+cafe:
+  btn_visit_confirm: 874-648-1056-727-1692402667.png

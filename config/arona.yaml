@@ -1,0 +1,15 @@
+startup:
+  package: com.RoamingStar.BlueArchive
+  activity: com.yostar.sdk.bridge.YoStarUnityPlayerActivity # com.yostar.supersdk.activity.YoStarSplashActivity
+  command: am start -n {package}/{activity} #command: monkey -p {package} 1
+device:
+  resolution:
+    width: 1920
+    height: 1080
+  touch:
+    dev: /dev/input/event4
+    invert:
+      x: false
+      y: true
+
+  # com.yostar.sdk.bridge.YoStarUnityPlayerActivity
