@@ -1,8 +1,8 @@
 import time
 
 import numpy as np
-from . import resource as res
-from .adb import ADB
+from . import resource as res, config
+from .adb import ADB, MNT
 import cv2
 from . import imgops
 from .imgreco import match_res
@@ -31,7 +31,8 @@ def press_res(res_path: str, wait=0.7):
     if wait:
         time.sleep(wait)
 
-def wait_n_press_res(res_path: str, timeout = 600, fore_wait = 0.5, post_wait = 0.5):
+
+def wait_n_press_res(res_path: str, timeout=600, fore_wait=0.5, post_wait=0.5):
     count = 0
     while not match_res(res_path):
         time.sleep(0.5)
@@ -40,3 +41,111 @@ def wait_n_press_res(res_path: str, timeout = 600, fore_wait = 0.5, post_wait = 
             raise RuntimeError("wait_n_press_res timeout")
     time.sleep(fore_wait)
     press_res(res_path, post_wait)
+
+
+def swipe_res(res_path: str):
+    res_data = res.res_value(res_path).split('-')
+    res_data = [int(x) for x in res_data]
+    ADB.input_swipe(*res_data)
+
+
+def wait_res(res_path: str, timeout=600):
+    count = 0
+    while not match_res(res_path):
+        time.sleep(0.5)
+        count += 1
+        if count / 2 > timeout:
+            raise RuntimeError("wait_res timeout")
+
+
+def press_res_if_match(res_path: str, wait=0.7):
+    if match_res(res_path):
+        press_res(res_path, wait)
+
+
+def zoom_out():
+    dev = config.get_config("arona.yaml/device.touch.dev")
+
+    operations = """u 0
+u 1
+w 40
+c
+d 0 576 766 0
+d 1 576 1246 0
+c
+w 40
+m 0 576 777 0
+m 1 576 1234 0
+c
+w 40
+m 0 576 789 0
+m 1 576 1221 0
+c
+w 40
+m 0 576 802 0
+m 1 576 1208 0
+c
+w 40
+m 0 576 813 0
+m 1 576 1198 0
+c
+w 40
+m 0 576 825 0
+m 1 576 1185 0
+c
+w 40
+m 0 576 838 0
+m 1 576 1173 0
+c
+w 40
+m 0 576 848 0
+m 1 576 1162 0
+c
+w 40
+m 0 576 861 0
+m 1 576 1149 0
+c
+w 40
+m 0 576 874 0
+m 1 576 1137 0
+c
+w 40
+m 0 576 886 0
+m 1 576 1126 0
+c
+w 40
+m 0 576 897 0
+m 1 576 1114 0
+c
+w 40
+m 0 576 909 0
+m 1 576 1101 0
+c
+w 40
+m 0 576 922 0
+m 1 576 1088 0
+c
+w 40
+m 0 576 933 0
+m 1 576 1078 0
+c
+w 40
+m 0 576 945 0
+m 1 576 1065 0
+c
+w 40
+m 0 576 958 0
+m 1 576 1053 0
+c
+w 40
+m 0 576 968 0
+m 1 576 1042 0
+c
+w 40
+u 0
+u 1
+c
+w 40
+c"""
+
+    MNT.send(operations)

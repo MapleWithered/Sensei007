@@ -3,3 +3,6 @@
 adb:
   path: .\adb\adb.exe
   device: 127.0.0.1:16384
+cafe:
+  # TODO: invite people logic
+  empty_preset_slot: 3

@@ -4,6 +4,8 @@ import socket
 import subprocess
 import time
 import typing
+import threading
+import queue
 from collections import namedtuple
 from pathlib import Path
 
@@ -11,11 +13,11 @@ import PIL
 import cv2
 import numpy as np
 import ppadb.device
+import pyminitouch
 from PIL import Image
 from ppadb.client import Client
+
 from . import imgops
-import pyminitouch
-from pyminitouch import MNTDevice
 from .config import get_config
 
 Size = namedtuple("Size", ['width', 'height'])
@@ -50,9 +52,28 @@ def get_adb_device() -> str:
 # Static class(?)
 class ADB:
     _device: ppadb.device.Device = None
-    _prev_screenshot_raw = None
-    _prev_screenshot_timestamp = 0
     _touch_dev: str = get_config("arona.yaml/device.touch.dev")
+
+    _mat_queue: queue.Queue = queue.Queue(maxsize=1)
+    _cap_daemon_run = False
+    _cap_daemon_thread = None
+    _mat_prev: np.array = None
+    _tapped = False
+
+    @classmethod
+    def screencap_daemon(cls):
+        cls._cap_daemon_run = True
+        try:
+            while cls._cap_daemon_run:
+                mat = cls._screencap_mat()
+                if not cls._mat_queue.empty():
+                    cls._mat_queue.get()
+                if cls._tapped:
+                    cls._tapped = False
+                    continue
+                cls._mat_queue.put(mat)
+        except KeyboardInterrupt:
+            return
 
     @classmethod
     def start_adb_server(cls):
@@ -92,6 +113,10 @@ class ADB:
                 cls._device = dev
                 return
 
+        cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
+        _cap_daemon_run = True
+        cls._cap_daemon_thread.start()
+
     @classmethod
     @functools.lru_cache()
     def get_resolution(cls) -> typing.Optional[Size]:
@@ -110,40 +135,65 @@ class ADB:
             return None
 
     @classmethod
-    def screencap_raw(cls, force: bool = False) -> str:
+    def _screencap_raw(cls) -> str:
+        # cat /proc/net/arp | grep :    -> NcAddress
         screenshot_ttl = 0.2
         if cls._device is None:
             cls.connect()
-        if time.monotonic() - cls._prev_screenshot_timestamp > screenshot_ttl or force:
-            cls._prev_screenshot_raw = cls._device.screencap()
-            cls._prev_screenshot_timestamp = time.monotonic()
-            return cls._prev_screenshot_raw
-        else:
-            return cls._prev_screenshot_raw
+        return cls._device.screencap()
+        # if time.monotonic() - cls._prev_screenshot_timestamp > screenshot_ttl or force:
+        #     cls._prev_screenshot_raw = cls._device.screencap()
+        #     cls._prev_screenshot_timestamp = time.monotonic()
+        #     return cls._prev_screenshot_raw
+        # else:
+        #     return cls._prev_screenshot_raw
 
     @classmethod
-    def screencap_mat(cls, force: bool = True, std_size: bool = False, gray=False) -> np.array:
+    def screencap_mat(cls, force=False) -> np.array:
         if cls._device is None:
             cls.connect()
-        img_np = np.frombuffer(cls.screencap_raw(force), dtype=np.uint8)
+        if not cls._cap_daemon_run:
+            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
+            _cap_daemon_run = True
+            cls._cap_daemon_thread.start()
+        if cls._mat_prev is not None and not force:
+            try:
+                cls._mat_prev = cls._mat_queue.get(block=False)
+            except queue.Empty:
+                pass
+            return cls._mat_prev
+        else:
+            try:
+                cls._mat_prev = cls._mat_queue.get(block=True, timeout=None if force else 4)
+            except queue.Empty:
+                return cls._screencap_mat()
+            return cls._mat_prev
+
+    @classmethod
+    def _screencap_mat(cls, std_size: bool = True, gray=False) -> np.array:
+        if cls._device is None:
+            cls.connect()
+        img_np = np.frombuffer(cls._screencap_raw(), dtype=np.uint8)
         img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
         if std_size:
             size = cls.get_resolution()
-            scale_ratio = get_config("arona.yaml/device/resolution/height") / size.height
-            width = int(img.shape[1] * scale_ratio)
-            height = int(img.shape[0] * scale_ratio)
-            dim = (width, height)
-            img = cv2.resize(img, dim, cv2.INTER_LINEAR)
+            config_height = get_config("arona.yaml/device/resolution/height")
+            if config_height != size.height:
+                scale_ratio = config_height / size.height
+                width = int(img.shape[1] * scale_ratio)
+                height = int(img.shape[0] * scale_ratio)
+                dim = (width, height)
+                img = cv2.resize(img, dim, cv2.INTER_LINEAR)
         if gray:
             img = imgops.mat_bgr2gray(img)
         return img
 
-    @classmethod
-    def screencap_pil(cls, force: bool = False, std_size: bool = False) -> PIL.Image.Image:
-        if cls._device is None:
-            cls.connect()
-        img = Image.fromarray(cls.screencap_mat(force=force, std_size=std_size))
-        return img
+    # @classmethod
+    # def screencap_pil(cls, force: bool = False, std_size: bool = False) -> PIL.Image.Image:
+    #     if cls._device is None:
+    #         cls.connect()
+    #     img = Image.fromarray(cls.screencap_mat(force=force, std_size=std_size))
+    #     return img
 
     @classmethod
     def get_top_activity(cls):
@@ -180,6 +230,8 @@ class ADB:
         cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
         cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
         cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        cls._mat_prev = None
+        cls._tapped = True
 
     @classmethod
     def input_swipe(cls, start_x, start_y, end_x, end_y, duration_ms, hold_time_ms=100):
@@ -209,6 +261,8 @@ class ADB:
         cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
         cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
         cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        cls._mat_prev = None
+        cls._tapped = True
 
     @classmethod
     def input_press_pos(cls, x, y):
@@ -229,13 +283,6 @@ class ADB:
         return cls._device.input_roll(dx, dy)
 
     @classmethod
-    def run_activity(cls):
-        if cls._device is None:
-            cls.connect()
-        # TODO: feat. Restart arknights when crashed
-        pass
-
-    @classmethod
     def create_connection(cls):
         if cls._device is None:
             cls.connect()
@@ -248,22 +295,105 @@ class ADB:
             cls.connect()
         return cls._device
 
-# def is_port_open(port):
-#     try:
-#         # Create a socket object
-#         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#         # Set a timeout of 1 second
-#         sock.settimeout(1)
-#         # Try to connect to the specified port
-#         result = sock.connect_ex(('localhost', port))
-#         # If the result is 0, the port is open; otherwise, it's closed or unreachable
-#         return result == 0
-#     except socket.error as e:
-#         print(f"Error occurred while checking port {port}: {e}")
-#         return False
-#     finally:
-#         # Close the socket
-#         sock.close()
+
+def is_port_open(port):
+    try:
+        # Create a socket object
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Set a timeout of 1 second
+        sock.settimeout(1)
+        # Try to connect to the specified port
+        result = sock.connect_ex(('localhost', port))
+        # If the result is 0, the port is open; otherwise, it's closed or unreachable
+        return result == 0
+    except socket.error as e:
+        print(f"Error occurred while checking port {port}: {e}")
+        return False
+    finally:
+        # Close the socket
+        sock.close()
+
+
+# Minicap
+class MNT:
+    _port = 0
+    _sock = None
+
+    @classmethod
+    def init_device(cls, port=16380):
+
+        if cls._sock:
+            return
+
+        if ADB.get_device_object().shell("pgrep minitouch") == "":
+            cls._port = port
+
+            abi: str = ADB.get_device_object().shell('getprop ro.product.cpu.abi').strip()
+            sdk: int = int(ADB.get_device_object().shell('getprop ro.build.version.sdk').strip())
+            pre: str = ADB.get_device_object().shell('getprop ro.build.version.preview_sdk').strip()
+            rel: str = ADB.get_device_object().shell('getprop ro.build.version.release').strip()
+
+            if pre and int(pre) > 0:
+                sdk += 1
+
+            # TODO: DEBUG
+            if sdk > 30:
+                sdk = 30
+            # LD_LIBRARY_PATH=/data/local/tmp/minicap-devel exec /data/local/tmp/minicap-devel/minicap -P 1920x1080@1920x1080/0 -s
+
+            # PIE is only supported since SDK 16
+            if sdk >= 16:
+                bin = "minitouch"
+            else:
+                bin = "minitouch-nopie"
+
+            dir = "/data/local/tmp"
+            ADB.get_device_object().shell(f'mkdir {dir} 2>/dev/null || true')
+
+            basepath = get_adb_path()
+            basepath = basepath[:basepath.rfind(os.path.sep)]  # remove adb.exe from basepath
+            basepath = os.path.join(basepath, "minitouch")
+
+            # Push minicap binary
+            ADB.get_device_object().push(f'{basepath}/{abi}/bin/{bin}', f'{dir}/{bin}')
+
+            ADB.get_device_object().shell(f'chmod 777 {dir}/{bin}')
+
+            # Start minicap & forwarding
+            res = subprocess.Popen(
+                [get_adb_path(), 'shell', '/data/local/tmp/minitouch'], stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+            while res.poll() is None:
+                line = res.stdout.readline().decode("utf8")
+                # if line.strip() != "":
+                #     print("log", line)
+                if "detected" in line:
+                    break
+
+        if not is_port_open(port):
+            subprocess.run([get_adb_path(), 'forward', f'tcp:{port}', f'localabstract:minitouch'], stdout=subprocess.PIPE)
+
+        cls._port = port
+        cls._sock = socket.create_connection(("localhost", cls._port), timeout=3)
+
+        time_start = time.time()
+        while time.time() < time_start + 3:
+            if 'v' in cls._sock.recv(1024).decode("utf8"):
+                return
+
+        print("MNT init failed")
+        return
+
+    @classmethod
+    def send(cls, cmd):
+        if not cls._sock:
+            cls.init_device()
+        try:
+            cls._sock.sendall(cmd.encode("utf8"))
+        except:
+            cls._sock = None
+            cls.init_device()
+            cls._sock.sendall(cmd.encode("utf8"))
 
 #
 # # Minicap
@@ -294,7 +424,8 @@ class ADB:
 #             sdk += 1
 #
 #         # TODO: DEBUG
-#         sdk=32
+#         if sdk > 30:
+#             sdk = 30
 #         # LD_LIBRARY_PATH=/data/local/tmp/minicap-devel exec /data/local/tmp/minicap-devel/minicap -P 1920x1080@1920x1080/0 -s
 #
 #         # PIE is only supported since SDK 16
@@ -312,7 +443,7 @@ class ADB:
 #
 #         # Push minicap binary
 #         ADB.get_device_object().push(f'{basepath}/{abi}/bin/{bin}', f'{dir}/{bin}')
-#         ADB.get_device_object().push(f'{basepath}/{abi}/lib/android-{sdk}/{bin}.so', f'{dir}/{bin}.so')
+#         ADB.get_device_object().push(f'{basepath}/libs/android-{sdk}/{abi}/minicap.so', f'{dir}/minicap.so')
 #
 #         ADB.get_device_object().shell(f'chmod 777 {dir}/{bin} {dir}/{bin}.so')
 #
@@ -326,6 +457,7 @@ class ADB:
 #                 print("log", line)
 #             if "Publishing virtual display" in line:
 #                 break
+#
 #     @classmethod
 #     def bind_port(cls, port):
 #         subprocess.run(
@@ -356,6 +488,7 @@ class ADB:
 #         print("JPEG data: {}".format(total))
 #         jpeg_data = cls._read_bytes(socket, total)
 #         sock.close()
+#
 #
 # if __name__ == '__main__':
 #     ADB.kill_adb_server()

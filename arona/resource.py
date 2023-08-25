@@ -40,6 +40,18 @@ def res_value(path: str):
     return dpath.get(_load_res_yaml(), path)
 
 
+def parse_rect(rect: str):
+    x1, y1, x2, y2 = rect.split('-')[0:4]
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+    return x1, y1, x2, y2
+
+
+def parse_pos(pos: str):
+    x1, y1 = pos.split('-')[0:2]
+    x1, y1 = int(x1), int(y1)
+    return x1, y1
+
+
 @functools.lru_cache()
 def get_img(path: str, gray=False):
     real_path = _get_resource_real_path(path.replace('\\', '/').replace('.', '/'))

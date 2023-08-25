@@ -1,3 +1,5 @@
+import time
+
 from .config import get_config
 from .imgreco import match_res
 from .presser import *
@@ -34,17 +36,22 @@ def on_status(status: str) -> bool:
 
 
 def run_startup():
-    if not game_started():
+    while not game_started():
         start_activity()
-    while not on_status("main_menu"):
-        if on_status("main_menu_btn_exist"):
-            press_res("navigation.btn_main_menu")
-        elif on_status("back_btn_exist"):
-            press_res("navigation.btn_back")
-        elif on_status("announcement"):
-            press_res("startup.announcement.btn_close")
-        elif on_status("splash"):
-            press_res("startup.splash.enter")
-        else:
-            press_res("startup.main_menu.pos_wake")
+        time.sleep(3)
+    time_start = time.time()
+    while time.time() - time_start < 4:
+        if not on_status("main_menu"):
+            time_start = time.time()
+            if on_status("main_menu_btn_exist"):
+                press_res("navigation.btn_main_menu")
+            elif on_status("back_btn_exist"):
+                press_res("navigation.btn_back")
+            elif on_status("announcement"):
+                press_res("startup.announcement.btn_close")
+            elif on_status("splash"):
+                press_res("startup.splash.enter")
+            else:
+                press_res("startup.main_menu.pos_wake")
+        time.sleep(0.1)
 

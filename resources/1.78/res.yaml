@@ -40,5 +40,121 @@ award:
   anchor: 849-219-1019-275-1692401349.png
 main_menu:
   btn_cafe: 117-962-153-1005-1692402496.png
+  btn_tasks: 75-328-121-366-1692895411.png
+  btn_mail: 1677-34-1752-83-1692973124.png
+  badge_momotalk:
+    pos: 284-190
+    rgb: 240-68-0
+    tolerance: 3
+  badge_cafe:
+    pos: 184-1005
+    rgb: 252-187-14
+    tolerance: 3
+  badge_task:
+    pos: 162-384
+    rgb: 251-70-20
+    tolerance: 4-15-15
+  badge_mail:
+    pos: 1767-25
+    rgb: 251-71-25
+    tolerance: 3
+tasks:
+  btn_take_all: 1566-969-1833-1037-1692895486.png
+mail:
+  btn_take_all: 1567-968-1835-1042-1692973159.png
 cafe:
   btn_visit_confirm: 874-648-1056-727-1692402667.png
+  bubble_can_take: 1719-855-1862-894-1692465244.png
+  btn_profit: 1637-917-1832-959-1692819661.png
+  btn_profit_take: 832-740-1092-821-1692819743.png
+  btn_profit_close: 1329-207-1384-262-1692819955.png
+  btn_invite_avail: 1185-963-1293-1035-1692465307.png
+  btn_preset: 492-914-582-1022-1692813580.png
+  btn_preset_moved: 480-913-565-1022-1692865198.png
+  btn_hide_all: 640-913-724-1020-1692465338.png
+  btn_hide_panel: 803-903-858-968-1692820499.png
+  btn_expand_panel: 65-906-113-960-1692820521.png
+  swipe:
+    1: 665-725-1475-300-500-500
+    2: 1475-725-665-300-500-500
+  preset:
+    btn_save:
+      1: 743-380-941-435-1692818183.png
+      2: 742-579-943-632-1692818179.png
+      3: 743-770-942-828-1692818176.png
+      save_confirm: 1071-710-1235-789-1692818345.png
+    btn_close: 1377-185-1432-243-1692818550.png
+    btn_apply:
+      1: 1200-374-1395-435-1692818660.png
+      2: 1200-575-1395-633-1692818691.png
+      3: 1206-772-1394-825-1692818657.png
+  mask_neglect:
+    0: 0-0-480-200
+    1: 0-0-1920-90
+    2: 1745-0-1920-205
+    3: 1155-835-1920-1080
+    4: 0-885-900-1080
+  color_neglect:
+    - mode: hsv
+      hsv: 85-4-231
+      tolerance: 88-7-14
+    - mode: hsv
+      hsv: 117-14-209
+      tolerance: 13-8-14
+    - mode: hsv
+      hsv: 106-163-144
+      tolerance: 5-17-36
+    - mode: hsv
+      hsv: 105-157-159
+      tolerance: 4-18-38
+    - mode: hsv
+      hsv: 21-78-241
+      tolerance: 6-47-15
+    - mode: hsv
+      hsv: 21-67-209
+      tolerance: 9-49-13
+    - mode: hsv
+      hsv: 85-5-211
+      tolerance: 88-8-24
+    - mode: hsv
+      hsv: 122-14-194
+      tolerance: 18-8-26
+    - mode: hsv
+      hsv: 106-160-161
+      tolerance: 5-21-41
+    - mode: hsv
+      hsv: 102-95-234
+      tolerance: 5-24-6
+    - mode: hsv
+      hsv: 106-166-143
+      tolerance: 4-20-37
+    - mode: hsv
+      hsv: 0-0-255
+      tolerance: 0-0-1
+    - mode: hsv
+      hsv: 107-174-126
+      tolerance: 5-21-19
+    - mode: hsv
+      hsv: 109-22-197
+      tolerance: 6-10-12
+    - mode: hsv
+      hsv: 116-13-135
+      tolerance: 3-3-3
+    - mode: hsv
+      hsv: 116-16-238
+      tolerance: 17-8-6
+    - mode: hsv
+      hsv: 115-16-238
+      tolerance: 14-8-6
+    - mode: hsv
+      hsv: 15-136-231
+      tolerance: 3-30-16
+    - mode: hsv
+      hsv: 14-98-207
+      tolerance: 3-22-11
+    - mode: hsv
+      hsv: 109-45-236
+      tolerance: 11-28-6
+    - mode: hsv
+      hsv: 75-12-140
+      tolerance: 78-15-13

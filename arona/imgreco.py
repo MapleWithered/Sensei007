@@ -63,6 +63,60 @@ def match_res(res_path: str, threshold: float = 0.96, strict=False) -> bool:
     return match_file(path, threshold)
 
 
+def match_res_color(res_path: str) -> bool:
+    res_data = res.res_value(res_path)
+
+    pos: str = res_data['pos']
+    pos: list[int] = [int(x) for x in pos.split("-")]
+
+    mode = ''
+    if 'rgb' in res_data:
+        color = res_data['rgb']  # like R-G-B
+        mode = 'rgb'
+    elif 'hsv' in res_data:
+        color = res_data['hsv']  # like H-S-V
+        mode = 'hsv'
+    else:
+        print("Unknown color mode")
+        raise RuntimeError("Unknown color mode")
+    color = [int(x) for x in color.split('-')]
+    color = np.asarray(color)
+
+    tolerance = res.res_value(res_path + ".tolerance")
+    if type(tolerance) is str and '-' in tolerance:
+        tolerance = [int(x) for x in tolerance.split('-')]
+    else:
+        tolerance = [int(tolerance)] * 3
+    tolerance = np.asarray(tolerance)
+
+    mat_screen = ADB.screencap_mat()[pos[1], pos[0]]
+    if mode == 'rgb':
+        mat_screen = mat_screen[::-1]
+        return np.all(np.abs(mat_screen - color) < tolerance)
+    elif mode == 'hsv':
+        mat_screen = cv2.cvtColor(mat_screen, cv2.COLOR_BGR2HSV)
+        return np.all(np.abs(mat_screen - color) < tolerance)
+
+
+def remove_res_color(img, res_path: str):
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    data = res.res_value(res_path)
+    if "mode" in data:
+        data = [data]
+    for color in data:
+        assert color['mode'] == 'hsv'
+        hsv = color['hsv'].split('-')
+        hsv = [int(x) for x in hsv]
+        tolerance = color['tolerance'].split('-')
+        tolerance = [int(x) for x in tolerance]
+        vmin = np.asarray([max(0, hsv[i] - tolerance[i]) for i in range(3)])
+        vmax = np.asarray([min(255, hsv[i] + tolerance[i]) for i in range(3)])
+        print(vmin, vmax)
+        mask = cv2.inRange(hsv_img, vmin, vmax)
+        hsv_img = hsv_img - cv2.bitwise_and(hsv_img, hsv_img, mask=mask)
+    return cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)
+
+
 def compare_mat(img1, img2, strict=False):
     temp1 = np.asarray(img1)
     temp2 = np.asarray(img2)
