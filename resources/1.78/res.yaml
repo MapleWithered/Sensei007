@@ -2,6 +2,14 @@ startup:
   splash:
     anchor: 1772-929-1869-1021-1692389438.png
     enter: 782-911-1141-965-1692389460.png
+  battle_in_progress:
+    notification:
+      anchor: 768-442-1133-556-1694120193.png
+      btn_abandon: 713-718-836-785-1694120247.png
+  upgrade:
+    notification:
+      anchor: 860-210-1062-270-1693476447.png
+      btn_confirm: 1001-707-1301-797-1693476496.png
   announcement:
     anchor: 169-121-498-180-1692395295.png
     btn_close: 1684-126-1739-179-1692395301.png
@@ -16,6 +24,10 @@ momotalk:
   btn_contact_activated: 208-238-311-337-1692396868.png
   btn_message_activated: 202-409-311-461-1692397185.png
   btn_unread: 716-238-814-289-1692397059.png
+  badge_unread:
+    pos: 983-360
+    rgb: 251-71-25
+    tolerance: 20
   step_unread:
     1: 630-415-715-465-1692397452.png
     2: 636-526-713-575-1692397454.png
@@ -38,33 +50,103 @@ story:
   confirm_skip: 1053-745-1269-824-1692400776.png
 award:
   anchor: 849-219-1019-275-1692401349.png
+  btn_notification_close: 1338-180-1391-232-1694344571.png
 main_menu:
   btn_cafe: 117-962-153-1005-1692402496.png
   btn_tasks: 75-328-121-366-1692895411.png
   btn_mail: 1677-34-1752-83-1692973124.png
+  btn_group: 843-946-892-989-1692995594.png
+  btn_alchemy: 1027-934-1070-985-1693030809.png
+  btn_terminal: 1713-788-1875-951-1694299659.png
   badge_momotalk:
     pos: 284-190
     rgb: 240-68-0
-    tolerance: 3
+    tolerance: 20
   badge_cafe:
     pos: 184-1005
     rgb: 252-187-14
-    tolerance: 3
+    tolerance: 5
   badge_task:
     pos: 162-384
     rgb: 251-70-20
-    tolerance: 4-15-15
+    tolerance: 5-15-15
   badge_mail:
     pos: 1767-25
     rgb: 251-71-25
-    tolerance: 3
+    tolerance: 5
+  badge_group:
+    pos: 920-1011
+    rgb: 251-69-21
+    tolerance: 5
+  badge_alchemy:
+    pos: 1092-1009
+    rgb: 251-71-25
+    tolerance: 5
+terminal:
+  anchor: 146-24-307-63-1694299807.png
+  btn_wanted: 1006-658-1158-696-1694300001.png
+  btn_task: 1077-240-1206-304-1694299990.png
+  btn_total_force: 1278-654-1405-694-1694300021.png
+  btn_competition: 1552-654-1762-696-1694300028.png
+  btn_special_mission: 979-819-1127-852-1694300052.png
+  btn_back: 56-34-115-80-1694300739.png
+
+wanted:
+  anchor: 986-205-1520-267-1694300208.png
+  btn_1: 1572-334-1836-398-1694300237.png
+  btn_2: 1569-547-1836-615-1694300252.png
+  btn_3: 1699-763-1836-829-1694300263.png
+  3_star: 1040-513-1118-541-1694300411.png
+  btn_start:
+    width: 131
+    height: 84
+  delta_3_star_to_btn_start:
+    dx: 569
+    dy: -53
+battle:
+  level_anchor: 152-25-381-59-1692988764.png
+  level_ocr: 168-267-260-315
+  btn_enter_stage: 1586-311-1766-416-1692988840.png
+  btn_enter_stageH: 1584-312-1771-439-1692994625.png
+  btn_to_stage_deviation:
+    # 1022-307-1138-371
+    # [1586, 311]
+    dx: -564
+    dy: -4
+  btn_to_stageH_deviation:
+    # 1022-320-1138-381
+    # [1584-312]
+    dx: -564
+    dy: -4
+  stage_name:
+    width: 116
+    height: 64
+  normal_chosen:
+    pos: 1093-239
+    hsv: 45-66-87
+    tolerance: 5
+  hard_chosen:
+    pos: 1500-239
+    rgb: 198-66-65
+    tolerance: 5
+  anchor_battle_info: 860-175-1060-243-1694300964.png
+  count_zero: 1326-418-1483-476-1694302073.png
+  btn_count_plus: 1522-419-1577-474-1694301098.png
+  btn_start_skip: 1315-577-1492-626-1694301231.png
+  btn_confirm_skip: 999-710-1301-792-1694301329.png
+  anchor_finish_skip_battle: 619-105-1300-185-1694301415.png
+  btn_confirm_finish: 902-843-1016-900-1694301460.png
 tasks:
   btn_take_all: 1566-969-1833-1037-1692895486.png
 mail:
   btn_take_all: 1567-968-1835-1042-1692973159.png
+group:
+  sign_in_notification:
+    btn_comfirm: 817-688-1098-775-1694291659.png
 cafe:
   btn_visit_confirm: 874-648-1056-727-1692402667.png
   bubble_can_take: 1719-855-1862-894-1692465244.png
+  bubble_full: 1718-850-1843-886-1694726521.png
   btn_profit: 1637-917-1832-959-1692819661.png
   btn_profit_take: 832-740-1092-821-1692819743.png
   btn_profit_close: 1329-207-1384-262-1692819955.png
@@ -75,8 +157,8 @@ cafe:
   btn_hide_panel: 803-903-858-968-1692820499.png
   btn_expand_panel: 65-906-113-960-1692820521.png
   swipe:
-    1: 665-725-1475-300-500-500
-    2: 1475-725-665-300-500-500
+    1: 665-725-1475-300-200-600
+    2: 1475-725-665-300-200-600
   preset:
     btn_save:
       1: 743-380-941-435-1692818183.png
@@ -88,6 +170,29 @@ cafe:
       1: 1200-374-1395-435-1692818660.png
       2: 1200-575-1395-633-1692818691.png
       3: 1206-772-1394-825-1692818657.png
+  anchor_doki: 709-884-1173-968-1693069561.png
+  visit:
+    anchor: 617-105-902-174-1693063909.png
+    btn_invite: 1068-414-1290-493-1693063869.png
+    btn_sort_down: 1241-208-1262-244-1693064574.png
+    btn_sort_up: 1238-209-1262-241-1693064712.png
+    btn_level: 979-204-1133-250-1693064554.png
+    btn_school: 977-202-1128-251-1693064826.png
+    btn_sort_cat_level: 864-375-1047-433-1693064884.png
+    btn_confirm_sort_cat: 871-489-1041-538-1693064871.png
+    btn_close: 1225-110-1290-172-1693067556.png
+    btn_confirm_invite: 991-710-1301-790-1693069371.png
+    btn_to_name_deviation:
+      # 1068-414-1290-493
+      # [731-401-935-450]
+      dx: -337
+      dy: -13
+    name:
+      width: 200
+      height: 50
+    swipe:
+      up: 1020-350-1020-800-200-600
+      down: 1020-800-1020-350-200-600
   mask_neglect:
     0: 0-0-480-200
     1: 0-0-1920-90
@@ -158,3 +263,33 @@ cafe:
     - mode: hsv
       hsv: 75-12-140
       tolerance: 78-15-13
+alchemy:
+  anchor: 1360-250-1509-298-1693233377.png
+  btn_take: 1592-372-1787-462-1693175405.png
+  btn_new: 1374-346-1552-499-1693234150.png
+  btn_fast_finish: 1595-800-1783-892-1693175414.png
+  stage1:
+    btn_start_unavailable: 1486-939-1852-1024-1693234287.png
+    btn_start_available: 1484-937-1854-1029-1694124098.png
+    stone_empty_all: 1039-218-1462-443-1693234421.png
+    stone_empty_small: 1039-217-1250-442-1693234451.png
+    stone_empty_big: 1250-216-1462-442-1693234455.png
+    stone_avail_big: 1299-242-1410-327-1694123958.png
+  stage2:
+    anchor: 565-100-701-228-1694124203.png
+    badge_mid:
+      1: 639-801-692-859-1694284609.png
+      2: 832-766-884-822-1694284618.png
+      3: 997-680-1052-738-1694284628.png
+      4: 1134-555-1188-609-1694286964.png
+      5: 1233-384-1285-442-1694286979.png
+    badge_left:
+      1: 236-802-288-855-1694287174.png
+      2: 428-767-481-823-1694287193.png
+      3: 596-684-645-733-1694287212.png
+      4: 735-555-783-609-1694287222.png
+      5: 827-386-881-441-1694287231.png
+    ocr_title: 1077-298-1710-422
+    ocr_description: 1048-510-1872-621
+    btn_confirm: 1510-935-1843-1025-1694291207.png
+    btn_start: 1510-935-1846-1024-1694291376.png

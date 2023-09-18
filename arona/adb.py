@@ -140,7 +140,15 @@ class ADB:
         screenshot_ttl = 0.2
         if cls._device is None:
             cls.connect()
-        return cls._device.screencap()
+        try:
+            img = cls._device.screencap()
+        except RuntimeError:
+            print("ADB FAILURE, restarting ADB server...")
+            ADB.kill_adb_server()
+            ADB.start_adb_server()
+            cls.connect()
+            img = cls._device.screencap()
+        return img
         # if time.monotonic() - cls._prev_screenshot_timestamp > screenshot_ttl or force:
         #     cls._prev_screenshot_raw = cls._device.screencap()
         #     cls._prev_screenshot_timestamp = time.monotonic()
@@ -199,7 +207,6 @@ class ADB:
     def get_top_activity(cls):
         if cls._device is None:
             cls.connect()
-        # TODO: feat. Ensure arknights is running
         return cls._device.get_top_activity()
 
     @classmethod
@@ -216,51 +223,107 @@ class ADB:
 
     @classmethod
     def input_tap(cls, x, y):
-        if cls._device is None:
-            cls.connect()
-        if get_config("arona.yaml/device.touch.invert.x"):
-            x = cls.get_resolution().width - x
-        if get_config("arona.yaml/device.touch.invert.y"):
-            y = cls.get_resolution().height - y
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
-        cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(x))
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(y))
-        cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
-        cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
-        cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        repr_x = get_config("arona.yaml/device.touch.screen_to_touch.touch_x")
+        repr_y = get_config("arona.yaml/device.touch.screen_to_touch.touch_y")
+
+        x, y = eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
+
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            if cls._device is None:
+                cls.connect()
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
+            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"d 0 {x} {y} 0\nc\nw 2\nu 0\nc\nw 2\n")
         cls._mat_prev = None
         cls._tapped = True
 
     @classmethod
     def input_swipe(cls, start_x, start_y, end_x, end_y, duration_ms, hold_time_ms=100):
-        if cls._device is None:
-            cls.connect()
-        if get_config("arona.yaml/device.touch.invert.x"):
-            start_x = cls.get_resolution().width - start_x
-            end_x = cls.get_resolution().width - end_x
-        if get_config("arona.yaml/device.touch.invert.y"):
-            start_y = cls.get_resolution().height - start_y
-            end_y = cls.get_resolution().height - end_y
-        # get ms time
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
-        cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
-        time_start = int(round(time.time() * 1000))
-        while time.time() * 1000 - time_start < duration_ms:
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(start_x + (end_x - start_x) * (
-                    time.time() * 1000 - time_start) / duration_ms)))
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(start_y + (end_y - start_y) * (
-                    time.time() * 1000 - time_start) / duration_ms)))
+        repr_x = get_config("arona.yaml/device.touch.screen_to_touch.touch_x")
+        repr_y = get_config("arona.yaml/device.touch.screen_to_touch.touch_y")
+
+        def converter(x, y):
+            return eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
+
+        start_x, start_y = converter(start_x, start_y)
+        end_x, end_y = converter(end_x, end_y)
+
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            if cls._device is None:
+                cls.connect()
+
+            # get ms time
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            time_start = int(round(time.time() * 1000))
+            while time.time() * 1000 - time_start < duration_ms:
+                cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(start_x + (end_x - start_x) * (
+                        time.time() * 1000 - time_start) / duration_ms)))
+                cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(start_y + (end_y - start_y) * (
+                        time.time() * 1000 - time_start) / duration_ms)))
+                cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+                # time.sleep(0.01)
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(end_x)))
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(end_y)))
             cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
-            time.sleep(0.01)
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(end_x)))
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(end_y)))
-        cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
-        time.sleep(hold_time_ms / 1000)
-        cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
-        cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
-        cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            time.sleep(hold_time_ms / 1000)
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"d 0 {start_x} {start_y} 0\nc\nw 2\n")
+            # get ms time
+            time_start = int(round(time.time() * 1000))
+            while time.time() * 1000 - time_start < duration_ms:
+                MNT.send(
+                    f"m 0 {int(start_x + (end_x - start_x) * (time.time() * 1000 - time_start) / duration_ms)} {int(start_y + (end_y - start_y) * (time.time() * 1000 - time_start) / duration_ms)} 0\nc\nw 2\n")
+                time.sleep(0.01)
+            MNT.send(f"m 0 {end_x} {end_y} 0\nc\nw 2\n")
+            time.sleep(hold_time_ms / 1000)
+            MNT.send(f"u 0\nc\nw 2\n")
+        cls._mat_prev = None
+        cls._tapped = True
+
+    @classmethod
+    def input_zoom(cls, finger1=None, finger2=None, duration_ms=500, hold_time_ms=200):
+        # finger1: [start_x, start_y, end_x, end_y]
+        # finger2: [start_x, start_y, end_x, end_y]
+        if finger2 is None:
+            finger2 = [1246, 576, 1042, 576]
+        if finger1 is None:
+            finger1 = [766, 576, 968, 576]
+        repr_x = get_config("arona.yaml/device.touch.screen_to_touch.touch_x")
+        repr_y = get_config("arona.yaml/device.touch.screen_to_touch.touch_y")
+
+        def converter(x, y):
+            return eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
+
+        start_x0, start_y0 = converter(finger1[0], finger1[1])
+        end_x0, end_y0 = converter(finger1[2], finger1[3])
+        start_x1, start_y1 = converter(finger2[0], finger2[1])
+        end_x1, end_y1 = converter(finger2[2], finger2[3])
+
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            raise NotImplementedError("Zoom not implemented for ADB")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"d 0 {start_x0} {start_y0} 0\nd 1 {start_x1} {start_y1} 0\nc\nw 2\n")
+            # get ms time
+            time_start = int(round(time.time() * 1000))
+            while time.time() * 1000 - time_start < duration_ms:
+                MNT.send(
+                    f"m 0 {int(start_x0 + (end_x0 - start_x0) * (time.time() * 1000 - time_start) / duration_ms)} {int(start_y0 + (end_y0 - start_y0) * (time.time() * 1000 - time_start) / duration_ms)} 0\n"
+                    + f"m 1 {int(start_x1 + (end_x1 - start_x1) * (time.time() * 1000 - time_start) / duration_ms)} {int(start_y1 + (end_y1 - start_y1) * (time.time() * 1000 - time_start) / duration_ms)} 0\nc\nw 2\n")
+                time.sleep(0.01)
+            MNT.send(f"m 0 {end_x0} {end_y0} 0\nm 1 {end_x1} {end_y1} 0\nc\nw 2\n")
+            time.sleep(hold_time_ms / 1000)
+            MNT.send(f"u 0\nu 1\nc\nw 2\n")
         cls._mat_prev = None
         cls._tapped = True
 
@@ -336,9 +399,6 @@ class MNT:
             if pre and int(pre) > 0:
                 sdk += 1
 
-            # TODO: DEBUG
-            if sdk > 30:
-                sdk = 30
             # LD_LIBRARY_PATH=/data/local/tmp/minicap-devel exec /data/local/tmp/minicap-devel/minicap -P 1920x1080@1920x1080/0 -s
 
             # PIE is only supported since SDK 16
@@ -371,7 +431,8 @@ class MNT:
                     break
 
         if not is_port_open(port):
-            subprocess.run([get_adb_path(), 'forward', f'tcp:{port}', f'localabstract:minitouch'], stdout=subprocess.PIPE)
+            subprocess.run([get_adb_path(), 'forward', f'tcp:{port}', f'localabstract:minitouch'],
+                           stdout=subprocess.PIPE)
 
         cls._port = port
         cls._sock = socket.create_connection(("localhost", cls._port), timeout=3)
@@ -423,7 +484,6 @@ class MNT:
 #         if pre and int(pre) > 0:
 #             sdk += 1
 #
-#         # TODO: DEBUG
 #         if sdk > 30:
 #             sdk = 30
 #         # LD_LIBRARY_PATH=/data/local/tmp/minicap-devel exec /data/local/tmp/minicap-devel/minicap -P 1920x1080@1920x1080/0 -s

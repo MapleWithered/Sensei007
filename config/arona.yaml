@@ -7,9 +7,12 @@ device:
     width: 1920
     height: 1080
   touch:
+    preferred_mode: minitouch # adb
     dev: /dev/input/event4
-    invert:
-      x: false
-      y: true
+    screen_to_touch:
+      touch_x: 1080 - y
+      touch_y: x
 
-  # com.yostar.sdk.bridge.YoStarUnityPlayerActivity
+
+
+# com.yostar.sdk.bridge.YoStarUnityPlayerActivity

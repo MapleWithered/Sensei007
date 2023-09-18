@@ -18,11 +18,11 @@ def run_tasks():
         if match_res("tasks.btn_take_all"):
             counter = 0
             press_res("tasks.btn_take_all")
-            wait_n_press_res("award.anchor", fore_wait=5, post_wait=1)
+            wait_n_press_res("award.anchor", fore_wait=1, post_wait=1)
         else:
             counter += 1
         time.sleep(0.5)
 
-    press_res("navigation.btn_main_menu")
+    wait_n_press_res("navigation.btn_main_menu")
     wait_res("startup.main_menu.anchor")
 

@@ -4,5 +4,37 @@ adb:
   path: .\adb\adb.exe
   device: 127.0.0.1:16384
 cafe:
-  # TODO: invite people logic
   empty_preset_slot: 3
+task:
+  cafe:
+    invite: 爱露
+  alchemy:
+    # 花: 礼物
+    # 主题名称/色彩: 家具
+    # 灿烂: 紫色素材/家具（最高等级的物质） yes
+    # 光芒: 金色素材/家具（高等级的物质） yes
+    # 玲珑: 蓝色素材/家具（普通等级的物质）
+    # 隐然: 白色素材（低等级的物质） yes
+    # 铜: 光盘
+    # 白金: 技术笔记
+    # 金: 神秘古物（欧帕兹）
+    # 武器零件
+    # 白银: 活动报告
+    # 金属: 任意角色素材
+    # Usage: "title/description:keyword"
+    # TODO: gold handler
+    priority:
+      - "title:花"
+      - "description:最高"
+      - "title:色彩"
+      - "description:主题"
+      - "description:家具"
+      - "description:高"
+      - "title:铜"
+      - "description:技术笔记"
+      - "description:普通"
+      - "description:晋通"
+      - "description:成长材料"
+      - "description:神秘古物"
+      - "description:活动报告书"
+      - "description:低"

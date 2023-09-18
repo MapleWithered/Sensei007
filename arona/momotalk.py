@@ -19,42 +19,51 @@ def on_status(status: str) -> bool:
 
 
 def handle_dialogue():
-    while True:
-        x1, y1, x2, y2 = res_value("momotalk.dialog_box").split("-")
-        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-        prev_mat_diag = ADB.screencap_mat()[y1:y2, x1:x2]
-        time.sleep(3)
+    x1, y1, x2, y2 = res_value("momotalk.dialog_box").split("-")
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+    prev_mat_diag = None
+    time_start = time.time()
+    while time.time() - time_start < 4:
         mat_diag = ADB.screencap_mat(force=True)[y1:y2, x1:x2]
-        while compare_mat(mat_diag, prev_mat_diag) < 0.999:
-            print(compare_mat(mat_diag, prev_mat_diag))
-            prev_mat_diag = mat_diag
-            mat_diag = ADB.screencap_mat(force=True)[y1:y2, x1:x2]
-            time.sleep(3)
-        v, _, _, ax, ay, val = find_res("momotalk.reply_title", norm=False)
+
+        v, _, _, ax, ay, val = find_res("momotalk.reply_title", norm=True)
         if v:
             ADB.input_press_pos(ax, ay + res_value("momotalk.reply_dy"))
+            time.sleep(0.7)
+            time_start = time.time()
             continue
-        v, _, _, ax, ay, val = find_res("momotalk.story_title", norm=False)
+
+        v, _, _, ax, ay, val = find_res("momotalk.story_title", norm=True)
         if v:
             ADB.input_press_pos(ax, ay + res_value("momotalk.story_dy"))
-            wait_n_press_res("momotalk.story_enter", post_wait=5)
-            wait_n_press_res("story.menu_anchor", fore_wait=5)
+            wait_n_press_res("momotalk.story_enter", post_wait=10)
+            wait_n_press_res("story.menu_anchor", fore_wait=8)
             wait_n_press_res("story.btn_skip")
             wait_n_press_res("story.confirm_skip")
-            wait_n_press_res("award.anchor", fore_wait=5)
+            wait_n_press_res("award.anchor", fore_wait=1, post_wait=1)
+            time_start = time.time()
             continue
-        # elif match_res("momotalk.btn_event_story"):
-        press_res("momotalk.second_msg")
-        press_res("momotalk.first_msg.empty")
-        break
+
+        # if prev_mat_diag is not None:
+        #     print(compare_mat(mat_diag, prev_mat_diag))
+        if prev_mat_diag is not None and compare_mat(mat_diag, prev_mat_diag) < 0.999:
+            time_start = time.time()
+
+        prev_mat_diag = mat_diag
+        continue
+
+    press_res("momotalk.second_msg")
+    press_res("momotalk.first_msg.empty")
 
 
 def run_momotalk():
+    print(ADB.screencap_mat(force=True)[190, 284][::-1])
     wait_res("startup.main_menu.anchor")
     if not match_res_color("main_menu.badge_momotalk"):
         return
     press_res("main_menu.badge_momotalk.pos", 2)
-    assert match_res("momotalk.anchor")
+
+    wait_res("momotalk.anchor")
     if not match_res("momotalk.btn_message_activated"):
         press_res("momotalk.btn_message_activated")
     if not match_res("momotalk.btn_unread"):
@@ -66,8 +75,9 @@ def run_momotalk():
 
     while True:
         press_res("momotalk.btn_sorted")
-        press_res("momotalk.btn_sorted", 1)
-        if match_res("momotalk.first_msg.empty"):
+        press_res("momotalk.btn_sorted", wait=2.5)
+        ADB.screencap_mat(force=True)
+        if not match_res_color("momotalk.badge_unread"):
             break
 
         press_res("momotalk.first_msg.empty")

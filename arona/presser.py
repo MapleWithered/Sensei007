@@ -8,7 +8,7 @@ from . import imgops
 from .imgreco import match_res
 
 
-def press_res(res_path: str, wait=0.7):
+def press_res(res_path: str, wait=1.2):
     file_name = res.res_value(res_path)
     match len(file_name.split('-')):
         case 5:
@@ -49,7 +49,7 @@ def swipe_res(res_path: str):
     ADB.input_swipe(*res_data)
 
 
-def wait_res(res_path: str, timeout=600):
+def wait_res(res_path: str, timeout=90):
     count = 0
     while not match_res(res_path):
         time.sleep(0.5)
@@ -63,89 +63,6 @@ def press_res_if_match(res_path: str, wait=0.7):
         press_res(res_path, wait)
 
 
-def zoom_out():
-    dev = config.get_config("arona.yaml/device.touch.dev")
-
-    operations = """u 0
-u 1
-w 40
-c
-d 0 576 766 0
-d 1 576 1246 0
-c
-w 40
-m 0 576 777 0
-m 1 576 1234 0
-c
-w 40
-m 0 576 789 0
-m 1 576 1221 0
-c
-w 40
-m 0 576 802 0
-m 1 576 1208 0
-c
-w 40
-m 0 576 813 0
-m 1 576 1198 0
-c
-w 40
-m 0 576 825 0
-m 1 576 1185 0
-c
-w 40
-m 0 576 838 0
-m 1 576 1173 0
-c
-w 40
-m 0 576 848 0
-m 1 576 1162 0
-c
-w 40
-m 0 576 861 0
-m 1 576 1149 0
-c
-w 40
-m 0 576 874 0
-m 1 576 1137 0
-c
-w 40
-m 0 576 886 0
-m 1 576 1126 0
-c
-w 40
-m 0 576 897 0
-m 1 576 1114 0
-c
-w 40
-m 0 576 909 0
-m 1 576 1101 0
-c
-w 40
-m 0 576 922 0
-m 1 576 1088 0
-c
-w 40
-m 0 576 933 0
-m 1 576 1078 0
-c
-w 40
-m 0 576 945 0
-m 1 576 1065 0
-c
-w 40
-m 0 576 958 0
-m 1 576 1053 0
-c
-w 40
-m 0 576 968 0
-m 1 576 1042 0
-c
-w 40
-u 0
-u 1
-c
-w 40
-c"""
-
-    MNT.send(operations)
+def zoom_out(wait=0.7):
+    ADB.input_zoom([1720, 540, 1120, 540], [200, 540, 800, 540])
+    time.sleep(wait)
