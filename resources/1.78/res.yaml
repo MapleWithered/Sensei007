@@ -19,6 +19,7 @@ startup:
 navigation:
   btn_main_menu: 1813-24-1905-65-1692396037.png
   btn_back: 51-29-114-81-1692396068.png
+  loading: 1381-962-1684-1023-1697064396.png
 momotalk:
   anchor: 206-144-530-208-1692396853.png
   btn_contact_activated: 208-238-311-337-1692396868.png
@@ -58,6 +59,7 @@ main_menu:
   btn_group: 843-946-892-989-1692995594.png
   btn_alchemy: 1027-934-1070-985-1693030809.png
   btn_terminal: 1713-788-1875-951-1694299659.png
+  btn_schedule: 293-986-353-1040-1697159686.png
   badge_momotalk:
     pos: 284-190
     rgb: 240-68-0
@@ -65,7 +67,7 @@ main_menu:
   badge_cafe:
     pos: 184-1005
     rgb: 252-187-14
-    tolerance: 5
+    tolerance: 10
   badge_task:
     pos: 162-384
     rgb: 251-70-20
@@ -73,15 +75,43 @@ main_menu:
   badge_mail:
     pos: 1767-25
     rgb: 251-71-25
-    tolerance: 5
+    tolerance: 10
   badge_group:
     pos: 920-1011
     rgb: 251-69-21
-    tolerance: 5
+    tolerance: 10
   badge_alchemy:
     pos: 1092-1009
     rgb: 251-71-25
-    tolerance: 5
+    tolerance: 10
+schedule:
+  anchor: 157-7-247-56-1697159848.png
+  ticket_ocr: 418-128-486-173
+  1st_level: 1085-210-1247-252-1697160624.png
+  btn_all_schedule: 1624-955-1868-1035-1697160751.png
+  title_all_schedule: 856-139-1065-205-1697160775.png
+  title_schedule_info: 860-138-1060-197-1697161296.png
+  btn_start_schedule: 858-791-1059-850-1697161299.png
+  btn_next_building: 1848-544
+  title_report: 872-173-1051-230-1697161813.png
+  wait_report_empty_space: 1068-328-1262-383-1697161841.png
+  btn_confirm_report: 802-791-1111-881-1697161881.png
+  color_anchor:
+    pos:
+      0: 640-395
+      1: 1150-395
+      2: 1670-395
+      3: 640-620
+      4: 1150-620
+      5: 1670-620
+      6: 640-845
+      7: 1150-845
+      8: 1670-845
+    rgb:
+      avail: 255-255-255
+      done: 238-238-237
+      locked: 42-42-41
+      empty: 207-207-205
 terminal:
   anchor: 146-24-307-63-1694299807.png
   btn_wanted: 1006-658-1158-696-1694300001.png
@@ -90,12 +120,35 @@ terminal:
   btn_competition: 1552-654-1762-696-1694300028.png
   btn_special_mission: 979-819-1127-852-1694300052.png
   btn_back: 56-34-115-80-1694300739.png
-
+competition:
+  anchor: 106-846-326-923-1697155240.png
+  btn_award_time_avail: 456-551-601-606-1697155727.png
+  btn_award_daily_avail: 457-664-596-722-1697237733.png
+  ticket_ocr: 274-709-358-755
+  my_level_ocr: 236-323-328-378
+  level_ocr:
+    1: 805-438-886-480
+    2: 809-678-889-718
+    3: 809-915-890-950
+  btn_update: 1630-195-1827-243-1697156791.png
+  btn_enter_team: 905-825-1014-882-1697157333.png
+  btn_start_battle: 1637-959-1865-1046-1697157397.png
+  tickbox_skip: 1661-882-1700-923-1697157414.png
+  label_skip: 1712-881-1875-926-1697157417.png
+  title_cooling: 788-379-1115-498-1697158874.png
+  title_cooling_emptytimer: 901-206-1020-273-1698461328.png
+  btn_confirm_result_win: 823-749-1101-833-1697157448.png
+  btn_confirm_result_lose: 826-656-1106-737-1697157859.png
+  btn_confirm_best_record: 823-770-1103-856-1698460173.png
 wanted:
   anchor: 986-205-1520-267-1694300208.png
   btn_1: 1572-334-1836-398-1694300237.png
   btn_2: 1569-547-1836-615-1694300252.png
   btn_3: 1699-763-1836-829-1694300263.png
+  anchor_empty:
+    1: 1193-452-1217-485-1697120327.png
+    2: 1190-667-1219-698-1697120334.png
+    3: 1190-883-1216-913-1697120344.png
   3_star: 1040-513-1118-541-1694300411.png
   btn_start:
     width: 131
@@ -138,8 +191,10 @@ battle:
   btn_confirm_finish: 902-843-1016-900-1694301460.png
 tasks:
   btn_take_all: 1566-969-1833-1037-1692895486.png
+  btn_notify_limit_break_confirm: 805-716-1111-791-1697154001.png
 mail:
   btn_take_all: 1567-968-1835-1042-1692973159.png
+  btn_notify_limit_break_confirm: 802-754-1115-833-1697154561.png
 group:
   sign_in_notification:
     btn_comfirm: 817-688-1098-775-1694291659.png
@@ -268,6 +323,10 @@ alchemy:
   btn_take: 1592-372-1787-462-1693175405.png
   btn_new: 1374-346-1552-499-1693234150.png
   btn_fast_finish: 1595-800-1783-892-1693175414.png
+  fast_finish:
+    anchor: 805-379-1099-455-1697071775.png
+    btn_confirm: 1020-679-1288-764-1697071798.png
+    btn_cancel: 629-676-891-766-1697071816.png
   stage1:
     btn_start_unavailable: 1486-939-1852-1024-1693234287.png
     btn_start_available: 1484-937-1854-1029-1694124098.png
@@ -275,6 +334,7 @@ alchemy:
     stone_empty_small: 1039-217-1250-442-1693234451.png
     stone_empty_big: 1250-216-1462-442-1693234455.png
     stone_avail_big: 1299-242-1410-327-1694123958.png
+    stone_avail_small: 1091-253-1207-319-1697073356.png
   stage2:
     anchor: 565-100-701-228-1694124203.png
     badge_mid:

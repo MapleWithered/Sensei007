@@ -147,7 +147,7 @@ def run_cafe(force=False):
     if v1 or v2:
         wait_n_press_res("cafe.btn_profit")
         wait_n_press_res("cafe.btn_profit_take")
-        wait_n_press_res("award.anchor", fore_wait=1, post_wait=1)
+        wait_n_press_res("award.anchor", fore_wait=0, post_wait=0.25)
         wait_n_press_res("cafe.btn_profit_close", post_wait=2)
 
 

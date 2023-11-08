@@ -49,7 +49,7 @@ def run_startup():
     screen_mat_prev = ADB.screencap_mat(force=True)
     stuck_counter = 0
     time_start = time.time()
-    while time.time() - time_start < 4:
+    while time.time() - time_start < 2:
         screen_mat = ADB.screencap_mat(force=True)
         if not game_started():
             start_activity()

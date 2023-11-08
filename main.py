@@ -1,4 +1,4 @@
-from arona import startup, momotalk, cafe, presser, tasks, mail, battle, group, alchemy
+from arona import startup, momotalk, cafe, presser, tasks, mail, battle, group, alchemy, schedule
 from arona.adb import ADB, MNT
 from arona.cafe import run_cafe
 from arona.imgreco import *
@@ -11,14 +11,23 @@ import socket
 if __name__ == '__main__':
     startup.run_startup()
 
-    battle.run_wanted()
+    # Tasks independent to rewards given
     group.run_group()
-    mail.run_mail()
-    cafe.run_cafe(force=True)
-    momotalk.run_momotalk()
-    alchemy.run_alchemy()
-    tasks.run_tasks()
     battle.run_wanted()
-
+    cafe.run_cafe()
+    schedule.run_schedule()
+    momotalk.run_momotalk()
+    mail.run_mail()
     tasks.run_tasks()
+
+
+    battle.run_competition()
+
+    # tasks.recover_ap()
+    # battle.run_task() total 20
+    # shop.buy_daily()
+
+    alchemy.run_alchemy(boost=False)
+    tasks.run_tasks()
+
     ADB._cap_daemon_run = False

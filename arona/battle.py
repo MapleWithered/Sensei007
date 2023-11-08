@@ -1,7 +1,7 @@
 import time
 
 from .imgreco import *
-from .presser import wait_res, press_res, wait_n_press_res
+from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
 from .resource import res_value
 
 
@@ -43,9 +43,12 @@ def run_wanted():
     wait_res("terminal.anchor")
 
     wait_n_press_res("terminal.btn_wanted", post_wait=2)
+    wait_res("wanted.btn_1")
 
     for i in range(3):
-        wait_n_press_res(f"wanted.btn_{i + 1}", post_wait=3)
+        if match_res(f"wanted.anchor_empty.{i + 1}", 0.99):
+            continue
+        wait_n_press_res(f"wanted.btn_{i + 1}", post_wait=2)
         res_list = find_res_all("wanted.3_star")
         res_list.sort(key=lambda x: x['position'][1])
         if len(res_list) == 0:
@@ -58,12 +61,12 @@ def run_wanted():
         star_pos = res_list[-1]['position']
         btn_pos = [star_pos[0] + dx, star_pos[1] + dy, star_pos[0] + dx + width, star_pos[1] + dy + height]
         ADB.input_press_rect(*btn_pos)
-        time.sleep(3)
+        time.sleep(0.8)
         wait_res("battle.anchor_battle_info")
-        press_res("battle.btn_count_plus", wait=2)
+        press_res("battle.btn_count_plus", wait=1)
         if match_res("battle.count_zero"):
-            press_res("terminal.btn_back", wait=1.5)
-            press_res("terminal.btn_back", wait=3)
+            press_res("terminal.btn_back", wait=1)
+            press_res("terminal.btn_back", wait=2)
             continue
         for _ in range(10):
             press_res("battle.btn_count_plus", wait=0.2)
@@ -73,13 +76,104 @@ def run_wanted():
         wait_n_press_res("battle.btn_confirm_finish", post_wait=5)
         while not match_res(f"wanted.btn_{i + 1}"):
             press_res("terminal.btn_back", wait=3)
-    time.sleep(2)
-    press_res("navigation.btn_main_menu", wait=5)
+    time.sleep(1)
+    press_res("navigation.btn_main_menu", wait=1.5)
     wait_res("startup.main_menu.anchor")
 
 
 def run_competition():
-    pass
+    def goto_competition():
+        if match_res("competition.anchor"):
+            return
+        while not match_res("competition.anchor"):
+            time.sleep(2)
+            if match_res("startup.main_menu.anchor"):
+                press_res("main_menu.btn_terminal")
+                wait_res("terminal.anchor")
+            if match_res("terminal.btn_competition"):
+                press_res("terminal.btn_competition")
+                wait_res("competition.anchor")
+                return
+            if press_res_if_match("navigation.btn_back"):
+                continue
+            if press_res_if_match("navigation.btn_main_menu"):
+                continue
+            press_res("navigation.btn_back")
+
+    def handle_battle():
+        wait_n_press_res("competition.btn_enter_team")
+        wait_res("competition.label_skip")
+        if not match_res("competition.tickbox_skip"):
+            press_res("competition.tickbox_skip")
+        while (match_res("competition.title_cooling") or
+                match_res("competition.title_cooling_emptytimer") or
+               (not match_res("competition.btn_confirm_result_win") and not match_res("competition.btn_confirm_result_lose"))):
+            if match_res("competition.label_skip") or match_res("competition.title_cooling"):
+                press_res("competition.btn_start_battle")
+            time.sleep(1)
+
+        succ = True
+        while not match_res("competition.anchor"):
+            if press_res_if_match("competition.btn_confirm_result_win"):
+                succ = True
+            elif press_res_if_match("competition.btn_confirm_result_lose"):
+                succ = False
+            else:
+                press_res_if_match("competition.btn_confirm_best_record")
+
+        return succ
+
+    goto_competition()
+
+    if press_res_if_match("competition.btn_award_time_avail"):
+        wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
+
+    if press_res_if_match("competition.btn_award_daily_avail"):
+        wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
+
+    my_level = int(ocr_res("competition.my_level_ocr", mode='digit', std=False)['text'])
+
+    stair_allow = 1
+
+    counter = 0
+
+    while stair_allow <= 3:
+        res = ocr_res("competition.ticket_ocr", mode='en', std=False)
+        if res['text'][0] not in ['1', '2', '3', '4', '5']:
+            break
+
+        levels = [int(ocr_res(f"competition.level_ocr.{i}", mode='digit', std=False)['text']) for i in range(1, 4)]
+        print(levels)
+
+        for i in range(1, stair_allow + 1):
+            if levels[i - 1] < my_level:
+                press_res(f"competition.level_ocr.{i}")
+                handle_battle()
+                break
+        else:
+            press_res("competition.btn_update", wait=1)
+            while ADB.is_loading():
+                time.sleep(1)
+            counter += 1
+
+        if counter >= 20:
+            counter = 0
+            stair_allow += 1
+
+    if press_res_if_match("competition.btn_award_time_avail"):
+        wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
+
+    if press_res_if_match("competition.btn_award_daily_avail"):
+        wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
+
+
+    while not match_res("startup.main_menu.anchor"):
+        res = False
+        res = res or press_res_if_match("navigation.btn_main_menu")
+        res = res or press_res_if_match("navigation.btn_back")
+        if not res:
+            press_res("navigation.btn_back")
+    return
 
 
 def run_story():

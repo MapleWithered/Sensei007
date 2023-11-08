@@ -53,7 +53,7 @@ def parse_pos(pos: str):
 
 
 @functools.lru_cache()
-def get_img(path: str, gray=False):
+def get_img(path: str, gray=False, unchanged=False):
     real_path = _get_resource_real_path(path.replace('\\', '/').replace('.', '/'))
     real_path = real_path.replace("/png", ".png").replace("/jpg", ".jpg")
     if os.path.exists(real_path):
@@ -66,6 +66,8 @@ def get_img(path: str, gray=False):
         raise FileNotFoundError('未能检测到图片文件.')
     if gray:
         img = cv2.imread(real_path, cv2.IMREAD_GRAYSCALE)
+    elif unchanged:
+        img = cv2.imread(real_path, cv2.IMREAD_UNCHANGED)
     else:
         img = cv2.imread(real_path)
     return img

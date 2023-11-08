@@ -33,14 +33,17 @@ def handle_dialogue():
             time_start = time.time()
             continue
 
-        v, _, _, ax, ay, val = find_res("momotalk.story_title", norm=True)
+        v, _, _, ax, ay, val = find_res("momotalk.story_title", norm=True, threshold=0.99)
         if v:
             ADB.input_press_pos(ax, ay + res_value("momotalk.story_dy"))
-            wait_n_press_res("momotalk.story_enter", post_wait=10)
-            wait_n_press_res("story.menu_anchor", fore_wait=8)
-            wait_n_press_res("story.btn_skip")
-            wait_n_press_res("story.confirm_skip")
-            wait_n_press_res("award.anchor", fore_wait=1, post_wait=1)
+            while True:
+                press_res_if_match("momotalk.story_enter")
+                press_res_if_match("story.menu_anchor")
+                press_res_if_match("story.btn_skip")
+                if press_res_if_match("story.confirm_skip"):
+                    break
+                time.sleep(0.3)
+            wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
             time_start = time.time()
             continue
 
@@ -61,7 +64,8 @@ def run_momotalk():
     wait_res("startup.main_menu.anchor")
     if not match_res_color("main_menu.badge_momotalk"):
         return
-    press_res("main_menu.badge_momotalk.pos", 2)
+    while match_res_color("main_menu.badge_momotalk") or match_res("startup.main_menu.anchor"):
+        press_res("main_menu.badge_momotalk.pos", 2)
 
     wait_res("momotalk.anchor")
     if not match_res("momotalk.btn_message_activated"):

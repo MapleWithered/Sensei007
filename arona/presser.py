@@ -8,7 +8,7 @@ from . import imgops
 from .imgreco import match_res
 
 
-def press_res(res_path: str, wait=1.2):
+def press_res(res_path: str, wait=1):
     file_name = res.res_value(res_path)
     match len(file_name.split('-')):
         case 5:
@@ -49,18 +49,21 @@ def swipe_res(res_path: str):
     ADB.input_swipe(*res_data)
 
 
-def wait_res(res_path: str, timeout=90):
+def wait_res(res_path: str, timeout=20):
     count = 0
     while not match_res(res_path):
         time.sleep(0.5)
         count += 1
         if count / 2 > timeout:
-            raise RuntimeError("wait_res timeout")
+            return False
+    return True
 
 
 def press_res_if_match(res_path: str, wait=0.7):
     if match_res(res_path):
         press_res(res_path, wait)
+        return True
+    return False
 
 
 def zoom_out(wait=0.7):

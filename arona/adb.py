@@ -19,6 +19,7 @@ from ppadb.client import Client
 
 from . import imgops
 from .config import get_config
+from . import resource as res
 
 Size = namedtuple("Size", ['width', 'height'])
 Pos = namedtuple("Pos", ['x', 'y'])
@@ -60,12 +61,31 @@ class ADB:
     _mat_prev: np.array = None
     _tapped = False
 
+    _loading = 1
+
     @classmethod
     def screencap_daemon(cls):
         cls._cap_daemon_run = True
+        path_template_loading: str = res.res_value("navigation.loading")
+        anchor = path_template_loading.split("-")[:4]
+        anchor = [int(x) for x in anchor]  # x1, y1, x2, y2
+        mat_template = res.get_img(res.res_value("navigation.loading"), unchanged=True)
+        # mat_cropped: BGR, mat_template: BGRA
+        # we compare the cropped mat with the template mat, using alpha channel as mask
+        mask = (mat_template[:, :, 3] > 250).astype(np.uint8) * 255
+        mat_template = mat_template[:, :, :3]
+        # mat_template to CV8U
+        mat_template = cv2.bitwise_and(mat_template, mat_template, mask=mask)
         try:
             while cls._cap_daemon_run:
                 mat = cls._screencap_mat()
+                mat_cropped = mat[anchor[1]:anchor[3], anchor[0]:anchor[2]]
+                mat_cropped = cv2.bitwise_and(mat_cropped, mat_cropped, mask=mask)
+                match = 1 - cv2.matchTemplate(mat_cropped, mat_template, cv2.TM_SQDIFF_NORMED)[0, 0]
+                if match > 0.9:
+                    cls._loading = 3
+                elif cls._loading > 0:
+                    cls._loading -= 1
                 if not cls._mat_queue.empty():
                     cls._mat_queue.get()
                 if cls._tapped:
@@ -74,6 +94,26 @@ class ADB:
                 cls._mat_queue.put(mat)
         except KeyboardInterrupt:
             return
+
+    @classmethod
+    def is_loading(cls):
+        if cls._device is None:
+            cls.connect()
+        if not cls._cap_daemon_run:
+            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
+            cls._cap_daemon_run = True
+            cls._cap_daemon_thread.start()
+        return cls._loading > 0
+
+    @classmethod
+    def get_loading_countdown(cls):
+        if cls._device is None:
+            cls.connect()
+        if not cls._cap_daemon_run:
+            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
+            cls._cap_daemon_run = True
+            cls._cap_daemon_thread.start()
+        return cls._loading
 
     @classmethod
     def start_adb_server(cls):
@@ -106,16 +146,19 @@ class ADB:
         # if device is IP:addr
         if device_name.find(":") != -1:
             host, port = device_name.split(":")
-            client.remote_connect(host, int(port))
+            assert client.remote_connect(host, int(port))
 
         for dev in client.devices():
             if dev.serial == device_name:
                 cls._device = dev
-                return
+                break
+        else:
+            raise RuntimeError("Device not found")
 
-        cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
-        _cap_daemon_run = True
-        cls._cap_daemon_thread.start()
+        if not cls._cap_daemon_run:
+            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
+            cls._cap_daemon_run = True
+            cls._cap_daemon_thread.start()
 
     @classmethod
     @functools.lru_cache()
@@ -140,15 +183,19 @@ class ADB:
         screenshot_ttl = 0.2
         if cls._device is None:
             cls.connect()
-        try:
-            img = cls._device.screencap()
-        except RuntimeError:
-            print("ADB FAILURE, restarting ADB server...")
-            ADB.kill_adb_server()
-            ADB.start_adb_server()
-            cls.connect()
-            img = cls._device.screencap()
-        return img
+        error_counter = 0
+        while error_counter < 5:
+            try:
+                img = cls._device.screencap()
+                return img
+            except RuntimeError:
+                print("ADB FAILURE, restarting ADB server...")
+                ADB.kill_adb_server()
+                ADB.start_adb_server()
+                cls.connect()
+                error_counter += 1
+                continue
+        raise RuntimeError("ADB FAILURE")
         # if time.monotonic() - cls._prev_screenshot_timestamp > screenshot_ttl or force:
         #     cls._prev_screenshot_raw = cls._device.screencap()
         #     cls._prev_screenshot_timestamp = time.monotonic()
@@ -157,13 +204,16 @@ class ADB:
         #     return cls._prev_screenshot_raw
 
     @classmethod
-    def screencap_mat(cls, force=False) -> np.array:
+    def screencap_mat(cls, force=False, allow_loading=False) -> np.array:
         if cls._device is None:
             cls.connect()
         if not cls._cap_daemon_run:
             cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon)
-            _cap_daemon_run = True
+            cls._cap_daemon_run = True
             cls._cap_daemon_thread.start()
+        if not allow_loading:
+            while cls._loading > 0:
+                time.sleep(0.1)
         if cls._mat_prev is not None and not force:
             try:
                 cls._mat_prev = cls._mat_queue.get(block=False)

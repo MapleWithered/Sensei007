@@ -52,7 +52,7 @@ def find_res(res_path: str, threshold: float = 0.995, norm=True):
     # return RectResult(Rect(top_left[0], top_left[1], bottom_right[0], bottom_right[1]), val)
 
 
-def find_res_all(res_path: str, threshold: float = 0.995, norm=True, force=False):
+def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False):
     mat_template = res.get_img(res.res_value(res_path))
     width, height = mat_template.shape[:2][::-1]
     mat_screen = ADB.screencap_mat(force=force)
