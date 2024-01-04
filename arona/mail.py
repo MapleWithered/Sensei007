@@ -5,7 +5,7 @@ from .presser import *
 from .resource import res_value, parse_rect
 
 def run_mail():
-    print(ADB.screencap_mat(force=True)[25, 1767][::-1])
+    # print(ADB.screencap_mat(force=True)[25, 1767][::-1])
     wait_res("startup.main_menu.anchor")
     if not match_res_color("main_menu.badge_mail"):
         return

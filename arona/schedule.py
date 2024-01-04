@@ -79,11 +79,12 @@ def run_schedule():
     goto_schedule()
 
     ticket = int(ocr_res("schedule.ticket_ocr", mode='en', std=False)['text'][0])
+    # TODO: total_ticket recognition
 
     if ticket != 0:
         wait_n_press_res("schedule.1st_level")
 
-        for i in range(5):
+        for i in range(6):
             succeeded = handle_schedule()['succ']
             if succeeded:
                 ticket -= 1

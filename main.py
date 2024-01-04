@@ -4,11 +4,13 @@ from arona.cafe import run_cafe
 from arona.imgreco import *
 from arona.presser import wait_n_press_res
 from arona import resource as res
+from arona.demoviewer import demoviewer
 
 import time
 import socket
 
 if __name__ == '__main__':
+    # demoviewer.start_viewer()
     startup.run_startup()
 
     # Tasks independent to rewards given

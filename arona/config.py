@@ -23,7 +23,7 @@ def _load_config(relative_path: str):
     if not relative_path.endswith('.yaml'):
         relative_path += '.yaml'
     real_path = _get_config_real_path(relative_path)
-    assert os.path.exists(real_path), '未能检测到yaml文件.'
+    assert os.path.exists(real_path), real_path+'未能检测到yaml文件.'
     with open(real_path, 'r', encoding='utf-8') as f:
         data = ruamel_yaml.load(f.read(), Loader=ruamel_yaml.RoundTripLoader)
     return data
@@ -44,6 +44,7 @@ def get_config(path: str):
 
 
 if __name__ == '__main__':
-    print(get_config("user_config.yaml"))
-    print(get_config("user_config.yaml/adb"))
-    print(get_config("user_config.yaml/adb/path"))
+    # print(get_config("user_config.yaml"))
+    # print(get_config("user_config.yaml/adb"))
+    # print(get_config("user_config.yaml/adb/path"))
+    pass

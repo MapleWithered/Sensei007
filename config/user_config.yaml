@@ -7,7 +7,14 @@ cafe:
   empty_preset_slot: 3
 task:
   cafe:
-    invite: 小春
+    invite: 伊织
+  battle:
+    task:
+      hard:
+        - H10-3: 3
+        - H9-3: 3
+      gold_skill:
+        - skill: 1
   alchemy:
     # 花: 礼物
     # 主题名称/色彩: 家具

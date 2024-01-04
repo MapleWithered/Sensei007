@@ -5,6 +5,7 @@ from . import resource as res
 from .adb import ADB
 import cv2
 from . import imgops
+from .demoviewer import demoviewer
 
 import matplotlib.pyplot as plt
 
@@ -35,6 +36,9 @@ def find_res(res_path: str, threshold: float = 0.995, norm=True):
         top_left = max_loc
         val = max_val
     bottom_right = (top_left[0] + mat_template.shape[::-1][-2], top_left[1] + mat_template.shape[::-1][-1])
+
+    demoviewer.show_img([[top_left[0], top_left[1], bottom_right[0], bottom_right[1]]])
+
     return val > threshold, top_left[0], top_left[1], bottom_right[0], bottom_right[1], val
     # if show_result:
     #     res_img = img.copy()
@@ -84,12 +88,13 @@ def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False)
     for pt in zip(*loc[::-1]):
         rectangle_list.append([pt[0], pt[1], pt[0] + width, pt[1] + height])
 
+    demoviewer.show_img(rectangle_list)
+
     def rect_intersect(rect1, rect2):
         return not (
                 max(rect1[2], rect2[2]) - min(rect1[0], rect2[0]) >= rect1[2] - rect1[0] + rect2[2] - rect2[0] or max(
             rect1[3], rect2[3]) - min(rect1[1], rect2[1]) >= rect1[3] - rect1[1] + rect2[3] - rect2[1]
         )
-
 
     # Rectangle Grouping
     i = 0
@@ -114,6 +119,8 @@ def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False)
         cv2.rectangle(mat_temp, (rect[0], rect[1]), (rect[2], rect[3]), (255, 0, 0), 5)
         result_list.append({"position": rect, "score": result[rect[1], rect[0]]})
 
+    demoviewer.show_img(rectangle_list)
+
     # cv2.imshow("res", mat_temp)
     # cv2.waitKey(0)
 
@@ -126,8 +133,11 @@ def match_file(path: str, threshold: float = 0.96) -> bool:
     x1, y1, x2, y2 = file_name.split('-')[:4]
     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
     mat_template = res.get_img(path)
-    mat_screen = ADB.screencap_mat()[y1:y2, x1:x2]
+    mat_screen = ADB.screencap_mat()
+    demoviewer.show_img([[x1, y1, x2, y2]])
+    mat_screen = mat_screen[y1:y2, x1:x2]
     result = compare_mat(mat_template, mat_screen)
+
     # cv2.imshow("1", mat_template)
     # cv2.imshow("2", mat_screen)
     # print(result)
@@ -166,13 +176,17 @@ def match_res_color(res_path: str) -> bool:
         tolerance = [int(tolerance)] * 3
     tolerance = np.asarray(tolerance)
 
-    mat_screen = ADB.screencap_mat()[pos[1], pos[0]]
+    mat_screen = ADB.screencap_mat()
+    demoviewer.show_img([[pos[0] - 4, pos[1] - 4, pos[0] + 4, pos[1] + 4]])
+
+    color_mat_screen = mat_screen[pos[1], pos[0]]
+
     if mode == 'rgb':
-        mat_screen = mat_screen[::-1]
-        return np.all(np.abs(mat_screen - color) < tolerance)
+        color_mat_screen = color_mat_screen[::-1]
+        return np.all(np.abs(color_mat_screen - color) < tolerance)
     elif mode == 'hsv':
-        mat_screen = cv2.cvtColor(mat_screen, cv2.COLOR_BGR2HSV)
-        return np.all(np.abs(mat_screen - color) < tolerance)
+        color_mat_screen = cv2.cvtColor(color_mat_screen, cv2.COLOR_BGR2HSV)
+        return np.all(np.abs(color_mat_screen - color) < tolerance)
 
 
 def remove_res_color(img, res_path: str):
@@ -188,9 +202,10 @@ def remove_res_color(img, res_path: str):
         tolerance = [int(x) for x in tolerance]
         vmin = np.asarray([max(0, hsv[i] - tolerance[i]) for i in range(3)])
         vmax = np.asarray([min(255, hsv[i] + tolerance[i]) for i in range(3)])
-        print(vmin, vmax)
+        # print(vmin, vmax)
         mask = cv2.inRange(hsv_img, vmin, vmax)
         hsv_img = hsv_img - cv2.bitwise_and(hsv_img, hsv_img, mask=mask)
+
     return cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)
 
 
@@ -217,6 +232,9 @@ def ocr(x1, x2, y1, y2, mode='cn', std=False, force=True):
             model = ocr_std_cn
 
     mat = ADB.screencap_mat(force=force)
+
+    demoviewer.show_img([[x1, y1, x2, y2]])
+
     mat = mat[y1:y2, x1:x2]
 
     if std:
@@ -233,6 +251,9 @@ def ocr_res(res_path: str, mode='cn', std=False, force=True):
 
 def ocr_list(list_pos, mode='cn', force=True):
     mat_screen = ADB.screencap_mat(force=force)
+
+    demoviewer.show_img(list_pos)
+
     mat_list = [mat_screen[y1:y2, x1:x2] for x1, y1, x2, y2 in list_pos]
 
     model = None

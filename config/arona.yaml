@@ -1,6 +1,6 @@
 startup:
   package: com.RoamingStar.BlueArchive
-  activity: com.yostar.sdk.bridge.YoStarUnityPlayerActivity # com.yostar.supersdk.activity.YoStarSplashActivity
+  activity: com.yostar.supersdk.activity.YoStarSplashActivity  # com.yostar.supersdk.activity.YoStarSplashActivity
   command: am start -n {package}/{activity} #command: monkey -p {package} 1
 device:
   resolution:

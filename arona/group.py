@@ -5,7 +5,7 @@ from .presser import *
 from .resource import res_value, parse_rect
 
 def run_group():
-    print(ADB.screencap_mat(force=True)[1011, 920][::-1])
+    # print(ADB.screencap_mat(force=True)[1011, 920][::-1])
     wait_res("startup.main_menu.anchor")
     if not match_res_color("main_menu.badge_group"):
         return

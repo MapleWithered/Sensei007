@@ -79,6 +79,8 @@ class ADB:
         try:
             while cls._cap_daemon_run:
                 mat = cls._screencap_mat()
+                if mat is None:
+                    continue
                 mat_cropped = mat[anchor[1]:anchor[3], anchor[0]:anchor[2]]
                 mat_cropped = cv2.bitwise_and(mat_cropped, mat_cropped, mask=mask)
                 match = 1 - cv2.matchTemplate(mat_cropped, mat_template, cv2.TM_SQDIFF_NORMED)[0, 0]
@@ -291,6 +293,53 @@ class ADB:
             cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
         elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
             MNT.send(f"d 0 {x} {y} 0\nc\nw 2\nu 0\nc\nw 2\n")
+        cls._mat_prev = None
+        cls._tapped = True
+
+    @classmethod
+    def input_press_down(cls, x, y, idx=0):
+        repr_x = get_config("arona.yaml/device.touch.screen_to_touch.touch_x")
+        repr_y = get_config("arona.yaml/device.touch.screen_to_touch.touch_y")
+
+        x, y = eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
+
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            if cls._device is None:
+                cls.connect()
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
+            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"d {idx} {x} {y} 0\nc\nw 2\n")
+        cls._mat_prev = None
+        cls._tapped = True
+
+    @classmethod
+    def input_press_up(cls, idx=0):
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            if cls._device is None:
+                cls.connect()
+            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"u {idx}\nc\nw 2\n")
+        cls._mat_prev = None
+        cls._tapped = True
+
+    @classmethod
+    def input_press_move(cls, x, y, idx=0):
+        repr_x = get_config("arona.yaml/device.touch.screen_to_touch.touch_x")
+        repr_y = get_config("arona.yaml/device.touch.screen_to_touch.touch_y")
+
+        x, y = eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
+
+        if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
+            raise NotImplementedError("Move not implemented for ADB, TODO")
+        elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
+            MNT.send(f"m {idx} {x} {y} 0\nc\nw 2\n")
         cls._mat_prev = None
         cls._tapped = True
 

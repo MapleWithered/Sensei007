@@ -38,7 +38,7 @@ def find_student(stu: str):
     while empty_count < 5:
         stu_list = get_invite_list()
         stu_name_list = [stu_list[i][0] for i in range(len(stu_list))]
-        print(stu_name_list)
+        # print(stu_name_list)
         for i in range(len(stu_list)):
             if stu_list[i][0] == stu:
                 return stu_list[i][2]

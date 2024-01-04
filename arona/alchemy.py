@@ -41,7 +41,7 @@ def match_priority(title, description):
         elif category == 'description':
             if name in description:
                 return i
-    print(title, "-", description)
+    # print(title, "-", description)
     return len(priority_list) + 1
 
 

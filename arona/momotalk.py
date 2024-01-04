@@ -60,7 +60,7 @@ def handle_dialogue():
 
 
 def run_momotalk():
-    print(ADB.screencap_mat(force=True)[190, 284][::-1])
+    # print(ADB.screencap_mat(force=True)[190, 284][::-1])
     wait_res("startup.main_menu.anchor")
     if not match_res_color("main_menu.badge_momotalk"):
         return

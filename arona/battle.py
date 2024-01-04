@@ -32,7 +32,7 @@ def get_stage_list():
         stage['text'] = stage['text'].replace(' ', '').replace('—', '-').replace('一', '-').replace('O', '0')
     stage_list = [[hard + stage_list[i]['text'], list_pos[i]] for i in range(len(stage_list)) if
                   stage_list[i]['text'].split('-')[0] == str(level)]
-    print(stage_list)
+    # print(stage_list)
 
 
 def run_wanted():
@@ -49,6 +49,7 @@ def run_wanted():
         if match_res(f"wanted.anchor_empty.{i + 1}", 0.99):
             continue
         wait_n_press_res(f"wanted.btn_{i + 1}", post_wait=2)
+        wait_res("wanted.stage_anchor")
         res_list = find_res_all("wanted.3_star")
         res_list.sort(key=lambda x: x['position'][1])
         if len(res_list) == 0:
@@ -143,7 +144,7 @@ def run_competition():
             break
 
         levels = [int(ocr_res(f"competition.level_ocr.{i}", mode='digit', std=False)['text']) for i in range(1, 4)]
-        print(levels)
+        # print(levels)
 
         for i in range(1, stair_allow + 1):
             if levels[i - 1] < my_level:
