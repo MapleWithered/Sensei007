@@ -10,18 +10,18 @@ startup:
     notification:
       anchor: 860-210-1062-270-1693476447.png
       btn_confirm: 1001-707-1301-797-1693476496.png
-  announcement:
-    anchor: 169-121-498-180-1692395295.png
+  announcement: # ok
+    anchor: 174-124-329-173-1708589812.png
     btn_close: 1684-126-1739-179-1692395301.png
-  main_menu:
+  main_menu:  # ok
     anchor: 1793-31-1871-87-1692395603.png
     pos_wake: 554-61
-navigation:
+navigation:  # ok
   btn_main_menu: 1813-24-1905-65-1692396037.png
   btn_back: 51-29-114-81-1692396068.png
-  loading: 1381-962-1684-1023-1697064396.png
+  loading: 1419-963-1682-1022-1708590303.png
 momotalk:
-  anchor: 206-144-530-208-1692396853.png
+  anchor: 206-147-357-204-1708590631.png
   btn_contact_activated: 208-238-311-337-1692396868.png
   btn_message_activated: 202-409-311-461-1692397185.png
   btn_unread: 716-238-814-289-1692397059.png
@@ -54,40 +54,40 @@ award:
   btn_notification_close: 1338-180-1391-232-1694344571.png
 main_menu:
   btn_cafe: 117-962-153-1005-1692402496.png
-  btn_tasks: 75-328-121-366-1692895411.png
+  btn_tasks: 75-330-114-373-1708671338.png
   btn_mail: 1677-34-1752-83-1692973124.png
-  btn_group: 843-946-892-989-1692995594.png
-  btn_alchemy: 1027-934-1070-985-1693030809.png
+  btn_group: 817-946-866-989-1692995594.png
+  btn_alchemy: 995-934-1038-985-1693030809.png
   btn_terminal: 1713-788-1875-951-1694299659.png
-  btn_schedule: 293-986-353-1040-1697159686.png
+  btn_schedule: 296-969-335-1003-1708591247.png
   badge_momotalk:
     pos: 284-190
     rgb: 240-68-0
     tolerance: 20
   badge_cafe:
-    pos: 184-1005
+    pos: 188-1017
     rgb: 252-187-14
     tolerance: 10
-  badge_task:
+  badge_task: # TODO
     pos: 162-384
     rgb: 251-70-20
     tolerance: 5-15-15
-  badge_mail:
-    pos: 1767-25
+  badge_mail: # TODO
+    pos: 1771-25
     rgb: 251-71-25
     tolerance: 10
-  badge_group:
-    pos: 920-1011
+  badge_group: # ok
+    pos: 879-1014
     rgb: 251-69-21
     tolerance: 10
-  badge_alchemy:
-    pos: 1092-1009
+  badge_alchemy: # ok
+    pos: 1057-1016
     rgb: 251-71-25
     tolerance: 10
 schedule:
   anchor: 157-7-247-56-1697159848.png
   ticket_ocr: 418-128-486-173
-  1st_level: 1085-210-1247-252-1697160624.png
+  1st_level: 1491-205-1806-245-1708593114.png
   btn_all_schedule: 1624-955-1868-1035-1697160751.png
   title_all_schedule: 856-139-1065-205-1697160775.png
   title_schedule_info: 860-138-1060-197-1697161296.png
@@ -114,11 +114,12 @@ schedule:
       empty: 207-207-205
 terminal:
   anchor: 146-24-307-63-1694299807.png
-  btn_wanted: 1006-658-1158-696-1694300001.png
-  btn_task: 1077-240-1206-304-1694299990.png
-  btn_total_force: 1278-654-1405-694-1694300021.png
-  btn_competition: 1552-654-1762-696-1694300028.png
-  btn_special_mission: 979-819-1127-852-1694300052.png
+  btn_wanted: 1004-618-1151-655-1708593478.png
+  btn_task: 1079-241-1206-300-1708593524.png
+  btn_total_force: 1279-608-1412-651-1708593548.png
+  btn_competition: 1558-607-1767-652-1708593564.png
+  btn_special_mission: 988-740-1129-773-1708593593.png
+  btn_institute_communication: 964-864-1142-897-1708593652.png
   btn_back: 56-34-115-80-1694300739.png
 competition:
   anchor: 106-846-326-923-1697155240.png
@@ -137,19 +138,37 @@ competition:
   label_skip: 1712-881-1875-926-1697157417.png
   title_cooling: 788-379-1115-498-1697158874.png
   title_cooling_emptytimer: 901-206-1020-273-1698461328.png
-  btn_confirm_result_win: 823-749-1101-833-1697157448.png
-  btn_confirm_result_lose: 826-656-1106-737-1697157859.png
-  btn_confirm_best_record: 823-770-1103-856-1698460173.png
+  btn_confirm_result_win: 823-749-1101-833-1697157448.png   # TODO
+  btn_confirm_result_lose: 826-656-1106-737-1697157859.png  # TODO
+  btn_confirm_best_record: 823-770-1103-856-1698460173.png  # TODO
 wanted:
-  anchor: 986-205-1520-267-1694300208.png
-  btn_1: 1572-334-1836-398-1694300237.png
-  btn_2: 1569-547-1836-615-1694300252.png
-  btn_3: 1699-763-1836-829-1694300263.png
+  anchor: 996-210-1530-264-1708593796.png
+  btn_1: 1578-323-1833-389-1708593852.png
+  btn_2: 1577-509-1833-569-1708593866.png
+  btn_3: 1711-692-1832-753-1708593877.png
   stage_anchor: 1335-142-1460-181-1700100195.png
   anchor_empty:
-    1: 1193-452-1217-485-1697120327.png
-    2: 1190-667-1219-698-1697120334.png
-    3: 1190-883-1216-913-1697120344.png
+    1: 1387-431-1409-458-1708593959.png
+    2: 1388-614-1406-640-1708593973.png
+    3: 1337-797-1358-822-1708593985.png
+  3_star: 1040-513-1118-541-1694300411.png
+  btn_start:
+    width: 131
+    height: 84
+  delta_3_star_to_btn_start:
+    dx: 569
+    dy: -53
+institute_communication:
+  anchor: 979-212-1527-268-1708662453.png
+  btn:
+    1: 1621-328-1833-405-1708663229.png
+    2: 1626-541-1834-616-1708663232.png
+    3: 1629-753-1830-830-1708663237.png
+  anchor_empty:
+    1: 1188-456-1208-482-1708670847.png
+    2: 1189-669-1206-696-1708670855.png
+    3: 1188-883-1208-912-1708670860.png
+  stage_anchor: 1332-143-1460-185-1708663781.png
   3_star: 1040-513-1118-541-1694300411.png
   btn_start:
     width: 131
@@ -190,8 +209,9 @@ battle:
   btn_confirm_skip: 999-710-1301-792-1694301329.png
   anchor_finish_skip_battle: 623-105-1292-176-1699566406.png
   btn_confirm_finish: 902-843-1016-900-1694301460.png
-tasks:
-  btn_take_all: 1566-969-1833-1037-1692895486.png
+tasks:  # TOOD below
+  btn_take_all: 1586-964-1862-1043-1708671197.png
+  btn_take_daily: 1401-968-1514-1037-1708671454.png
   btn_notify_limit_break_confirm: 805-716-1111-791-1697154001.png
 mail:
   btn_take_all: 1567-968-1835-1042-1692973159.png
@@ -217,15 +237,15 @@ cafe:
     2: 1475-725-665-300-200-600
   preset:
     btn_save:
-      1: 743-380-941-435-1692818183.png
-      2: 742-579-943-632-1692818179.png
-      3: 743-770-942-828-1692818176.png
+      1: 750-380-938-427-1708652137.png
+      2: 750-576-940-625-1708652152.png
+      3: 750-774-941-821-1708652157.png
       save_confirm: 1071-710-1235-789-1692818345.png
     btn_close: 1377-185-1432-243-1692818550.png
     btn_apply:
-      1: 1200-374-1395-435-1692818660.png
-      2: 1200-575-1395-633-1692818691.png
-      3: 1206-772-1394-825-1692818657.png
+      1: 1229-380-1371-427-1708674281.png
+      2: 1225-577-1375-627-1708674284.png
+      3: 1227-773-1373-822-1708674286.png
   anchor_doki: 709-884-1173-968-1693069561.png
   visit:
     anchor: 617-105-902-174-1693063909.png
@@ -322,20 +342,17 @@ cafe:
 alchemy:
   anchor: 1360-250-1509-298-1693233377.png
   btn_take: 1592-372-1787-462-1693175405.png
-  btn_new: 1374-346-1552-499-1693234150.png
+  btn_new: 1363-346-1501-489-1708654820.png
   btn_fast_finish: 1595-800-1783-892-1693175414.png
   fast_finish:
-    anchor: 805-379-1099-455-1697071775.png
-    btn_confirm: 1020-679-1288-764-1697071798.png
-    btn_cancel: 629-676-891-766-1697071816.png
+    anchor: 800-393-1095-462-1708661785.png
+    btn_confirm: 996-725-1279-812-1708661808.png
+    btn_cancel: 640-723-918-810-1708661819.png
   stage1:
     btn_start_unavailable: 1486-939-1852-1024-1693234287.png
     btn_start_available: 1484-937-1854-1029-1694124098.png
-    stone_empty_all: 1039-218-1462-443-1693234421.png
-    stone_empty_small: 1039-217-1250-442-1693234451.png
-    stone_empty_big: 1250-216-1462-442-1693234455.png
-    stone_avail_big: 1299-242-1410-327-1694123958.png
-    stone_avail_small: 1091-253-1207-319-1697073356.png
+    stone_avail_big: 1095-268-1198-320-1708655643.png
+    stone_avail_small: 1303-269-1405-314-1708655659.png
   stage2:
     anchor: 565-100-701-228-1694124203.png
     badge_mid:
@@ -350,10 +367,11 @@ alchemy:
       3: 596-684-645-733-1694287212.png
       4: 735-555-783-609-1694287222.png
       5: 827-386-881-441-1694287231.png
-    ocr_title: 1077-298-1710-422
-    ocr_description: 1048-510-1872-621
+    ocr_title: 1220-297-1847-423
+    ocr_description: 1055-508-1874-621
     btn_confirm: 1510-935-1843-1025-1694291207.png
     btn_start: 1510-935-1846-1024-1694291376.png
+    btn_notification_confirm: 1000-708-1299-794-1708659348.png
 mini_game:
   start_btn: 1540-943-1761-1012-1702004253.png
   start_btn_locked: 1484-933-1826-1028-1702004476.png
