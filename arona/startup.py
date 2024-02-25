@@ -4,6 +4,29 @@ from .config import get_config
 from .imgreco import match_res, compare_mat
 from .presser import *
 
+import datetime
+import time
+
+
+def get_all_timer():
+    timer_str_list = get_config("user_config.yaml/timer")
+    timer_list = []
+    for timer_str in timer_str_list:
+        timer_list.append(datetime.datetime.strptime(timer_str, "%H:%M"))
+    return timer_list
+
+
+def wait_until_timer():
+    print("Standby at " + str(datetime.datetime.now()))
+    while True:
+        timer_list = get_all_timer()
+        now = datetime.datetime.now()
+        for timer in timer_list:
+            if now.hour == timer.hour and now.minute == timer.minute:
+                print("Start task at " + str(now))
+                return
+        time.sleep(30)
+
 
 def game_started():
     res_window: str = ADB.get_device_object().shell("dumpsys window windows | grep -E 'BlueArchive'").strip()
@@ -84,4 +107,3 @@ def run_startup():
             time_start = time.time()
             screen_mat_prev = screen_mat
         time.sleep(1.5)
-

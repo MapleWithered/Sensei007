@@ -33,3 +33,4 @@ if __name__ == '__main__':
     tasks.run_tasks()
 
     ADB._cap_daemon_run = False
+    startup.stop_activity()

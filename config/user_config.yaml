@@ -3,6 +3,9 @@
 adb:
   path: .\adb\adb.exe
   device: 127.0.0.1:16384
+timer:
+  - 7:30
+  - 19:30
 cafe:
   empty_preset_slot: 3
 task:
