@@ -33,7 +33,11 @@ def _load_res_yaml():
     return data
 
 
-@functools.lru_cache()
+def res_reload():
+    _load_res_yaml.cache_clear()
+    get_img.cache_clear()
+
+
 def res_value(path: str):
     path = path.replace('\\', '/')
     path = path.replace('.', '/')

@@ -15,7 +15,7 @@ ocr_std_en = CnOcr(det_model_name='en_PP-OCRv3_det', rec_model_name='en_PP-OCRv3
 ocr_std_cn = CnOcr()
 
 
-def find_res(res_path: str, threshold: float = 0.995, norm=True):
+def find_res(res_path: str, threshold: float = 0.99, norm=True):
     mat_template = res.get_img(res.res_value(res_path))
     mat_screen = ADB.screencap_mat()
 
@@ -90,6 +90,9 @@ def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False)
 
     demoviewer.show_img(rectangle_list)
 
+    for i in range(len(rectangle_list)):
+        rectangle_list[i] = rectangle_list[i] + [result[rectangle_list[i][1], rectangle_list[i][0]]]
+
     def rect_intersect(rect1, rect2):
         return not (
                 max(rect1[2], rect2[2]) - min(rect1[0], rect2[0]) >= rect1[2] - rect1[0] + rect2[2] - rect2[0] or max(
@@ -107,7 +110,8 @@ def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False)
                     min(rectangle_list[i][0], rectangle_list[j][0]),
                     min(rectangle_list[i][1], rectangle_list[j][1]),
                     min(rectangle_list[i][0], rectangle_list[j][0]) + rectangle_list[i][2] - rectangle_list[i][0],
-                    min(rectangle_list[i][1], rectangle_list[j][1]) + rectangle_list[i][3] - rectangle_list[i][1]
+                    min(rectangle_list[i][1], rectangle_list[j][1]) + rectangle_list[i][3] - rectangle_list[i][1],
+                    max(rectangle_list[i][4], rectangle_list[j][4])
                 ]
                 rectangle_list.pop(j)
             else:
@@ -117,7 +121,7 @@ def find_res_all(res_path: str, threshold: float = 0.98, norm=True, force=False)
     # print(rectangle_list)
     for rect in rectangle_list:
         cv2.rectangle(mat_temp, (rect[0], rect[1]), (rect[2], rect[3]), (255, 0, 0), 5)
-        result_list.append({"position": rect, "score": result[rect[1], rect[0]]})
+        result_list.append({"position": rect[:4], "score": rect[4]})
 
     demoviewer.show_img(rectangle_list)
 

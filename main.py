@@ -14,23 +14,24 @@ if __name__ == '__main__':
     startup.run_startup()
 
     # Tasks independent to rewards given
-    group.run_group()
-    battle.run_wanted()
-    cafe.run_cafe()
-    schedule.run_schedule()
-    momotalk.run_momotalk()
-    mail.run_mail()
-    tasks.run_tasks()
+    group.run_group()     # ok
+    battle.run_wanted()   # ok
+    battle.run_communication()    # ok
+    cafe.run_cafe()       # ok
+    schedule.run_schedule()   # ok
+    momotalk.run_momotalk()   # ok
+    mail.run_mail()                   # ok
+    tasks.run_tasks()                 # ok
 
+    battle.run_competition()  # ok
 
-    battle.run_competition()
-
+    # TODO: not implemented
     # tasks.recover_ap()
     # battle.run_task() total 20
     # shop.buy_daily()
 
-    alchemy.run_alchemy(boost=False)
-    tasks.run_tasks()
+    alchemy.run_alchemy()     # ok
+    tasks.run_tasks()       # ok
 
     ADB._cap_daemon_run = False
     startup.stop_activity()

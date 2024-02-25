@@ -53,7 +53,7 @@ def find_student(stu: str):
 
 def handle_characters():
     counter = 0
-    while counter < 16:
+    while counter < 30:
         counter += 1
         if match_res("cafe.anchor_doki"):
             counter = 0

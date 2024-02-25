@@ -82,6 +82,54 @@ def run_wanted():
     wait_res("startup.main_menu.anchor")
 
 
+def run_communication():
+    # TODO: Change all wait main menu to goto main menu
+    wait_res("startup.main_menu.anchor")
+
+    press_res("main_menu.btn_terminal")
+    wait_res("terminal.anchor")
+
+    wait_n_press_res("terminal.btn_institute_communication", post_wait=2)
+    wait_res("institute_communication.anchor")
+
+    for i in range(3):
+        if match_res(f"institute_communication.anchor_empty.{i + 1}", 0.99):
+            continue
+        wait_n_press_res(f"institute_communication.btn.{i + 1}", post_wait=2)
+        wait_res("institute_communication.stage_anchor")
+        res_list = find_res_all("institute_communication.3_star")
+        res_list.sort(key=lambda x: x['position'][1])
+        if len(res_list) == 0:
+            press_res("terminal.btn_back", wait=3)
+            continue
+        dx = res_value("institute_communication.delta_3_star_to_btn_start.dx")
+        dy = res_value("institute_communication.delta_3_star_to_btn_start.dy")
+        width = res_value("institute_communication.btn_start.width")
+        height = res_value("institute_communication.btn_start.height")
+        star_pos = res_list[-1]['position']
+        btn_pos = [star_pos[0] + dx, star_pos[1] + dy, star_pos[0] + dx + width, star_pos[1] + dy + height]
+        ADB.input_press_rect(*btn_pos)
+        time.sleep(0.8)
+        wait_res("battle.anchor_battle_info")
+        press_res("battle.btn_count_plus", wait=1)
+        if match_res("battle.count_zero"):
+            press_res("terminal.btn_back", wait=1)
+            press_res("terminal.btn_back", wait=2)
+            continue
+        for _ in range(10):
+            press_res("battle.btn_count_plus", wait=0.2)
+        wait_n_press_res("battle.btn_start_skip", fore_wait=0.5, post_wait=1)
+        wait_n_press_res("battle.btn_confirm_skip", fore_wait=0.5, post_wait=8)
+        wait_res("battle.anchor_finish_skip_battle")
+        wait_n_press_res("battle.btn_confirm_finish", post_wait=5)
+        while not match_res(f"institute_communication.btn.{i + 1}"):
+            press_res("terminal.btn_back", wait=3)
+    time.sleep(1)
+    press_res("navigation.btn_main_menu", wait=1.5)
+    wait_res("startup.main_menu.anchor")
+
+
+
 def run_competition():
     def goto_competition():
         if match_res("competition.anchor"):

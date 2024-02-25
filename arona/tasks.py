@@ -6,8 +6,8 @@ from .resource import res_value, parse_rect
 
 def run_tasks():
     wait_res("startup.main_menu.anchor")
-    if not match_res_color("main_menu.badge_task"):
-        return
+    # if not match_res_color("main_menu.badge_task"):
+    #     return
     wait_n_press_res("main_menu.btn_tasks")
 
     time.sleep(2.8)
@@ -18,8 +18,10 @@ def run_tasks():
     while counter < 6:
         res = False
         res = res or press_res_if_match("tasks.btn_take_all")
+        res = res or press_res_if_match("tasks.btn_take_daily")
         res = res or press_res_if_match("award.anchor")
         res = res or press_res_if_match("tasks.btn_notify_limit_break_confirm")
+        time.sleep(0.75)
         if not res:
             counter += 1
         else:
