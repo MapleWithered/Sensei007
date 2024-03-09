@@ -18,6 +18,7 @@ if __name__ == '__main__':
     battle.run_wanted()   # ok
     battle.run_communication()    # ok
     cafe.run_cafe()       # ok
+    # TODO: when list student already in cafe, run second priority or the last one
     schedule.run_schedule()   # ok
     momotalk.run_momotalk()   # ok
     mail.run_mail()                   # ok

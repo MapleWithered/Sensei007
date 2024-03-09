@@ -25,11 +25,11 @@ def get_invite_list():
 
 def find_student(stu: str):
     wait_res("cafe.visit.anchor")
-    if match_res("cafe.visit.btn_school"):
-        press_res("cafe.visit.btn_school")
-        wait_res("cafe.visit.btn_confirm_sort_cat")
-        press_res("cafe.visit.btn_sort_cat_level")
-        press_res("cafe.visit.btn_confirm_sort_cat")
+    # if match_res("cafe.visit.btn_school"):
+    #     press_res("cafe.visit.btn_school")
+    #     wait_res("cafe.visit.btn_confirm_sort_cat")
+    #     press_res("cafe.visit.btn_sort_cat_level")
+    #     press_res("cafe.visit.btn_confirm_sort_cat")
     press_res_if_match("cafe.visit.btn_sort_up")
     direction = 'down'
     stu_name_list = None
@@ -125,11 +125,18 @@ def run_cafe(force=False):
         return
     wait_n_press_res("main_menu.btn_cafe")
 
-    time.sleep(2)
-    while not match_res("navigation.btn_main_menu"):
-        press_res_if_match("cafe.btn_visit_confirm")
+    time.sleep(10)
 
-    time.sleep(2)
+    counter = 0
+    while counter < 2:
+        res = press_res_if_match("cafe.btn_visit_confirm")
+        if res:
+            counter = 0
+            time.sleep(2)
+        else:
+            counter += 1
+            time.sleep(2)
+
     if match_res("cafe.btn_invite_avail"):
         press_res("cafe.btn_invite_avail")
         stu_name = get_config("user_config.yaml/task.cafe.invite")
@@ -142,15 +149,19 @@ def run_cafe(force=False):
             wait_n_press_res("cafe.visit.btn_confirm_invite")
             time.sleep(5)
 
-    v1, _, _, _, _, _ = find_res("cafe.bubble_can_take", norm=True, threshold=0.985)
-    v2, _, _, _, _, _ = find_res("cafe.bubble_full", norm=True, threshold=0.985)
-    if v1 or v2:
-        wait_n_press_res("cafe.btn_profit")
-        wait_n_press_res("cafe.btn_profit_take")
-        wait_n_press_res("award.anchor", fore_wait=0, post_wait=0.25)
-        wait_n_press_res("cafe.btn_profit_close", post_wait=2)
-
-
+    counter = 0
+    while counter < 2:
+        v1, _, _, _, _, _ = find_res("cafe.bubble_can_take", norm=True, threshold=0.97)
+        v2, _, _, _, _, _ = find_res("cafe.bubble_full", norm=True, threshold=0.97)
+        if v1 or v2:
+            wait_n_press_res("cafe.btn_profit")
+            wait_n_press_res("cafe.btn_profit_take")
+            wait_n_press_res("award.anchor", fore_wait=0, post_wait=0.25)
+            wait_n_press_res("cafe.btn_profit_close", post_wait=2)
+            counter = 0
+        else:
+            counter += 1
+            time.sleep(1)
 
     wait_n_press_res("cafe.btn_preset")
     num_preset = get_config("user_config.yaml/cafe.empty_preset_slot")

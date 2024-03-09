@@ -30,8 +30,8 @@ momotalk:
     rgb: 251-71-25
     tolerance: 20
   step_unread:
-    1: 630-415-715-465-1692397452.png
-    2: 636-526-713-575-1692397454.png
+    1: 795-418-873-462-1709791673.png
+    2: 635-610-710-654-1709791676.png
   btn_sorted: 950-246-972-284-1692397077.png
   first_msg:
     empty: 930-332-1002-413-1692397702.png
@@ -220,7 +220,7 @@ group:
   sign_in_notification:
     btn_comfirm: 817-688-1098-775-1694291659.png
 cafe:
-  btn_visit_confirm: 874-648-1056-727-1692402667.png
+  btn_visit_confirm: 821-644-1103-732-1709370695.png
   bubble_can_take: 1719-855-1862-894-1692465244.png
   bubble_full: 1718-850-1843-886-1694726521.png
   btn_profit: 1637-917-1832-959-1692819661.png
