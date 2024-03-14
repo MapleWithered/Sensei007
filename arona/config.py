@@ -40,7 +40,7 @@ def get_config(path: str):
         return _load_config(path_list[0])
     else:
         data = _load_config(path_list[0])
-        return dpath.get(data, path_list[1].replace('.', '/'))
+        return dpath.get(data, path_list[1].replace('.', '/'), default=None)
 
 
 if __name__ == '__main__':

@@ -9,3 +9,5 @@ cnocr
 cnstd
 dpath
 onnxruntime
+scrcpy-client
+adbutils
