@@ -1,9 +1,11 @@
-import matplotlib.pyplot as plt
+import time
 
-from . import presser
+import cv2
+
+from .adb import ADB
 from .config import get_config
-from .imgreco import find_res, remove_res_color, match_res_color, find_res_all, ocr_res
-from .presser import *
+from .imgreco import find_res_all, ocr_res, match_res
+from .presser import wait_res, press_res, wait_n_press_res
 from .resource import res_value, parse_rect
 
 
@@ -56,10 +58,11 @@ def check_color_left():
         mid_point_list.append(((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2))
         mid_point_list.sort(key=lambda x: -x[1])
     for i in range(5):
-        rect_list[i] = [mid_point_list[i][0] - 10, mid_point_list[i][1] - 10, mid_point_list[i][0] + 10, mid_point_list[i][1] + 10]
+        rect_list[i] = [mid_point_list[i][0] - 10, mid_point_list[i][1] - 10, mid_point_list[i][0] + 10,
+                        mid_point_list[i][1] + 10]
     # for i in range(5):
-        # cv2.imshow(f"i={i}", img_screen[int(rect_list[i][1]):int(rect_list[i][3]), int(rect_list[i][0]):int(rect_list[i][2])])
-        # cv2.waitKey(0)
+    # cv2.imshow(f"i={i}", img_screen[int(rect_list[i][1]):int(rect_list[i][3]), int(rect_list[i][0]):int(rect_list[i][2])])
+    # cv2.waitKey(0)
     # rect -> HSV -> average of HSV -> hue as color
     color_list = []
     index_list = []
@@ -147,6 +150,7 @@ def handle_stage_one():
     elif match_res("alchemy.stage1.stone_avail_small", threshold=0.99):
         for i in range(10):
             press_res("alchemy.stage1.stone_avail_small", wait=0.12)
+        time.sleep(0.35)
         if not match_res("alchemy.stage1.btn_start_available"):
             return False
         press_res("alchemy.stage1.btn_start_available")
@@ -172,7 +176,6 @@ def run_alchemy(boost=False):
             wait_res("alchemy.anchor")
 
     remain = True
-
 
     while remain:
         handle_finish(boost=boost)

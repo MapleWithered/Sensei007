@@ -1,11 +1,11 @@
-import time
-
-from .config import get_config
-from .imgreco import match_res, compare_mat
-from .presser import *
-
 import datetime
 import time
+
+from .adb import ADB
+from .config import get_config
+from .imgreco import compare_mat
+from .imgreco import match_res
+from .presser import press_res
 
 
 def get_all_timer():

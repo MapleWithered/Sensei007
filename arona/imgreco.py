@@ -1,15 +1,11 @@
-import math
-
+import cv2
 import numpy as np
+from cnocr import CnOcr
+
+from . import imgops
 from . import resource as res
 from .adb import ADB
-import cv2
-from . import imgops
 from .demoviewer import demoviewer
-
-import matplotlib.pyplot as plt
-
-from cnocr import CnOcr
 
 ocr_std_en = CnOcr(det_model_name='en_PP-OCRv3_det', rec_model_name='en_PP-OCRv3')
 ocr_std_cn = CnOcr()

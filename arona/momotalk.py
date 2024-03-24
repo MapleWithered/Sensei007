@@ -1,6 +1,8 @@
-from .config import get_config
-from .imgreco import *
-from .presser import *
+import time
+
+from .adb import ADB
+from .imgreco import match_res, find_res, compare_mat, match_res_color
+from .presser import press_res_if_match, wait_n_press_res, press_res, wait_res
 from .resource import res_value
 
 

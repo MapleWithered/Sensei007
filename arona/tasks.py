@@ -1,8 +1,8 @@
-from . import presser
-from .config import get_config
-from .imgreco import find_res, remove_res_color, match_res_color
-from .presser import *
-from .resource import res_value, parse_rect
+import time
+
+from .imgreco import match_res
+from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
+
 
 def run_tasks():
     wait_res("startup.main_menu.anchor")
@@ -33,4 +33,3 @@ def run_tasks():
         res = res or press_res_if_match("navigation.btn_back")
         if not res:
             press_res("navigation.btn_back")
-

@@ -1,12 +1,15 @@
 # TODO
+import time
 
-from .config import get_config
-from .imgreco import *
-from .presser import *
+import numpy as np
+
+from .adb import ADB
+from .imgreco import ocr_res, match_res
+from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
 from .resource import res_value
 
-def run_schedule():
 
+def run_schedule():
     def goto_schedule():
         if match_res("schedule.anchor"):
             return
@@ -25,7 +28,7 @@ def run_schedule():
     def handle_schedule():
         wait_n_press_res("schedule.btn_all_schedule")
         wait_res("schedule.title_all_schedule")
-        time.sleep(0.8)
+        time.sleep(1)
 
         color_avail = res_value("schedule.color_anchor.rgb.avail").split("-")
         color_done = res_value("schedule.color_anchor.rgb.done").split("-")
@@ -34,25 +37,22 @@ def run_schedule():
 
         screen_mat = ADB.screencap_mat(force=True)
 
+        def color_in_range(screen_mat: np.ndarray, x: int, y: int, color: list[str], tolerance: int):
+            return abs(screen_mat[y, x, 2] - int(color[0])) < tolerance and \
+                   abs(screen_mat[y, x, 1] - int(color[1])) < tolerance and \
+                   abs(screen_mat[y, x, 0] - int(color[2])) < tolerance
+
         status_list = []
         for tile in range(9):
-            xy_pos:str = res_value(f"schedule.color_anchor.pos.{tile}")
+            xy_pos: str = res_value(f"schedule.color_anchor.pos.{tile}")
             x, y = [int(_i) for _i in xy_pos.split("-")]
-            if (screen_mat[y, x, 2] == int(color_avail[0]) and
-                    screen_mat[y, x, 1] == int(color_avail[1]) and
-                    screen_mat[y, x, 0] == int(color_avail[2])):
+            if color_in_range(screen_mat, x, y, color_avail, 10):
                 status_list.append("avail")
-            elif (screen_mat[y, x, 2] == int(color_done[0]) and
-                    screen_mat[y, x, 1] == int(color_done[1]) and
-                    screen_mat[y, x, 0] == int(color_done[2])):
+            elif color_in_range(screen_mat, x, y, color_done, 10):
                 status_list.append("done")
-            elif (screen_mat[y, x, 2] == int(color_locked[0]) and
-                    screen_mat[y, x, 1] == int(color_locked[1]) and
-                    screen_mat[y, x, 0] == int(color_locked[2])):
+            elif color_in_range(screen_mat, x, y, color_locked, 10):
                 status_list.append("locked")
-            elif (screen_mat[y, x, 2] == int(color_empty[0]) and
-                    screen_mat[y, x, 1] == int(color_empty[1]) and
-                    screen_mat[y, x, 0] == int(color_empty[2])):
+            elif color_in_range(screen_mat, x, y, color_empty, 10):
                 status_list.append("empty")
 
         if "done" in status_list:
@@ -84,7 +84,7 @@ def run_schedule():
     if ticket != 0:
         wait_n_press_res("schedule.1st_level")
 
-        for i in range(6):
+        for i in range(6):  # 6 buildings, edit this number for update
             succeeded = handle_schedule()['succ']
             if succeeded:
                 ticket -= 1
@@ -99,5 +99,3 @@ def run_schedule():
         if not res:
             press_res("navigation.btn_back")
     return
-
-

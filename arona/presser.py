@@ -1,10 +1,7 @@
 import time
 
-import numpy as np
-from . import resource as res, config
-from .adb import ADB, MNT
-import cv2
-from . import imgops
+from . import resource as res
+from .adb import ADB
 from .imgreco import match_res
 
 

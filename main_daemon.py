@@ -1,14 +1,4 @@
-from arona import startup, momotalk, cafe, presser, tasks, mail, battle, group, alchemy, schedule
-from arona.adb import ADB, MNT
-from arona.cafe import run_cafe
-from arona.imgreco import *
-from arona.presser import wait_n_press_res
-from arona import resource as res
-from arona.demoviewer import demoviewer
-
-import datetime
-import socket
-
+from arona import startup, momotalk, cafe, tasks, mail, battle, group, alchemy, schedule
 
 if __name__ == '__main__':
 
@@ -38,5 +28,4 @@ if __name__ == '__main__':
         alchemy.run_alchemy()  # ok
         tasks.run_tasks()  # ok
 
-        ADB._cap_daemon_run = False
         startup.stop_activity()

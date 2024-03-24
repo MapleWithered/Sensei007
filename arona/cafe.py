@@ -1,9 +1,14 @@
+import time
+
+import cv2
 import numpy as np
 
 from . import presser
+from .adb import ADB
 from .config import get_config
 from .imgreco import find_res, remove_res_color, match_res_color, find_res_all, ocr_list
-from .presser import *
+from .imgreco import match_res
+from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match, swipe_res
 from .resource import res_value, parse_rect
 
 
@@ -12,10 +17,10 @@ def get_invite_list():
     find_students = find_res_all(f"cafe.visit.btn_invite", force=True)
     btn_pos = [x['position'] for x in find_students]
     btn_pos.sort(key=lambda x: x[1])
-    dx = res.res_value(f"cafe.visit.btn_to_name_deviation.dx")
-    dy = res.res_value(f"cafe.visit.btn_to_name_deviation.dy")
-    width = res.res_value("cafe.visit.name.width")
-    height = res.res_value("cafe.visit.name.height")
+    dx = res_value(f"cafe.visit.btn_to_name_deviation.dx")
+    dy = res_value(f"cafe.visit.btn_to_name_deviation.dy")
+    width = res_value("cafe.visit.name.width")
+    height = res_value("cafe.visit.name.height")
     list_pos = [[x[0] + dx, x[1] + dy, x[0] + dx + width, x[1] + dy + height] for x in btn_pos]
     student_list = ocr_list(list_pos, mode='cn', force=False)
     # print(student_list)

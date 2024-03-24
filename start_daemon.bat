@@ -14,6 +14,7 @@ call venv\Scripts\activate.bat
 TITLE Sensei007
 
 :pystart
-python main.py
+python main_daemon.py
+goto pystart
 
 pause

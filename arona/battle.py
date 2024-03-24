@@ -1,6 +1,8 @@
 import time
 
-from .imgreco import *
+from .adb import ADB
+from .imgreco import match_res, ocr_res
+from .imgreco import match_res_color, find_res_all, ocr_list
 from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
 from .resource import res_value
 
@@ -21,10 +23,10 @@ def get_stage_list():
     find_stages = find_res_all(f"battle.btn_enter_stage{hard}")
     list_pos = [[x['position'][0], x['position'][1]] for x in find_stages]
     list_pos.sort(key=lambda x: x[1])
-    dx = res.res_value(f"battle.btn_to_stage{hard}_deviation.dx")
-    dy = res.res_value(f"battle.btn_to_stage{hard}_deviation.dy")
-    width = res.res_value("battle.stage_name.width")
-    height = res.res_value("battle.stage_name.height")
+    dx = res_value(f"battle.btn_to_stage{hard}_deviation.dx")
+    dy = res_value(f"battle.btn_to_stage{hard}_deviation.dy")
+    width = res_value("battle.stage_name.width")
+    height = res_value("battle.stage_name.height")
     list_pos = [[x[0] + dx, x[1] + dy, x[0] + dx + width, x[1] + dy + height] for x in list_pos]
     stage_list = ocr_list(list_pos, mode='cn', force=False)
     # print(stage_list)
@@ -129,10 +131,10 @@ def run_communication():
     wait_res("startup.main_menu.anchor")
 
 
-
 def run_competition():
     def goto_competition():
         if match_res("competition.anchor"):
+            time.sleep(0.4)
             return
         while not match_res("competition.anchor"):
             time.sleep(2)
@@ -142,12 +144,14 @@ def run_competition():
             if match_res("terminal.btn_competition"):
                 press_res("terminal.btn_competition")
                 wait_res("competition.anchor")
+                time.sleep(0.5)
                 return
             if press_res_if_match("navigation.btn_back"):
                 continue
             if press_res_if_match("navigation.btn_main_menu"):
                 continue
             press_res("navigation.btn_back")
+        time.sleep(0.5)
 
     def handle_battle():
         wait_n_press_res("competition.btn_enter_team")
@@ -155,8 +159,9 @@ def run_competition():
         if not match_res("competition.tickbox_skip"):
             press_res("competition.tickbox_skip")
         while (match_res("competition.title_cooling") or
-                match_res("competition.title_cooling_emptytimer") or
-               (not match_res("competition.btn_confirm_result_win") and not match_res("competition.btn_confirm_result_lose"))):
+               match_res("competition.title_cooling_emptytimer") or
+               (not match_res("competition.btn_confirm_result_win") and not match_res(
+                   "competition.btn_confirm_result_lose"))):
             if match_res("competition.label_skip") or match_res("competition.title_cooling"):
                 press_res("competition.btn_start_battle")
             time.sleep(1)
@@ -214,7 +219,6 @@ def run_competition():
 
     if press_res_if_match("competition.btn_award_daily_avail"):
         wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
-
 
     while not match_res("startup.main_menu.anchor"):
         res = False

@@ -9,6 +9,7 @@ device:
   resolution:
     width: 1920
     height: 1080
+  screencap: scrcpy   # adb
   touch:
     preferred_mode: minitouch # adb
     dev: /dev/input/event4

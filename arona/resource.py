@@ -1,11 +1,11 @@
+import functools
 import os
 import typing
+
 import cv2
-
 import dpath
-import functools
-
 from ruamel import yaml as ruamel_yaml
+
 from .config import get_config
 
 resource_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../resources')

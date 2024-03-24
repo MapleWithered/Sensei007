@@ -1,8 +1,6 @@
-from . import presser
-from .config import get_config
-from .imgreco import find_res, remove_res_color, match_res_color
-from .presser import *
-from .resource import res_value, parse_rect
+from .imgreco import match_res_color
+from .presser import wait_res, wait_n_press_res
+
 
 def run_group():
     # print(ADB.screencap_mat(force=True)[1011, 920][::-1])

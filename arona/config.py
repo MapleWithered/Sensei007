@@ -1,11 +1,9 @@
+import functools
 import os
 import typing
 
 import dpath
-
 from ruamel import yaml as ruamel_yaml
-
-import functools
 
 config_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../config')
 
@@ -23,7 +21,7 @@ def _load_config(relative_path: str):
     if not relative_path.endswith('.yaml'):
         relative_path += '.yaml'
     real_path = _get_config_real_path(relative_path)
-    assert os.path.exists(real_path), real_path+'未能检测到yaml文件.'
+    assert os.path.exists(real_path), real_path + '未能检测到yaml文件.'
     with open(real_path, 'r', encoding='utf-8') as f:
         data = ruamel_yaml.load(f.read(), Loader=ruamel_yaml.RoundTripLoader)
     return data

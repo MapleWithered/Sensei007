@@ -1,8 +1,8 @@
-from . import presser
-from .config import get_config
-from .imgreco import find_res, remove_res_color, match_res_color
-from .presser import *
-from .resource import res_value, parse_rect
+import time
+
+from .imgreco import match_res
+from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
+
 
 def run_mail():
     # print(ADB.screencap_mat(force=True)[25, 1767][::-1])

@@ -1,12 +1,11 @@
-from ruamel import yaml as ruamel_yaml
 import time
+
 import numpy as np
+from ruamel import yaml as ruamel_yaml
 
-from arona.imgreco import match_res
 from arona.adb import MNT, ADB
+from arona.imgreco import match_res
 from arona.presser import wait_n_press_res
-
-# from arona.presser import *
 
 if __name__ == '__main__':
 
@@ -42,6 +41,7 @@ if __name__ == '__main__':
     print("开始游戏，等待初始音符出现")
 
     ADB._cap_daemon_run = False
+
 
     def color_in_range(color: list, color_std: list, tolerance: list):
         for i in range(3):

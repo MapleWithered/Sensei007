@@ -1,5 +1,6 @@
 import time
 
+
 def try_until_succ(func, max_retries=5, sleep_time=1):
     for i in range(max_retries):
         try:

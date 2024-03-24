@@ -5,7 +5,6 @@ import cv2
 import numpy
 import numpy as np
 
-
 Size = namedtuple("Size", ['width', 'height'])
 Pos = namedtuple("Pos", ['x', 'y'])
 Rect = namedtuple("Rect", ['x1', 'y1', 'x2', 'y2'])

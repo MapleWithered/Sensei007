@@ -1,16 +1,11 @@
 
 import cv2
-import time
 
-import numpy as np
-
-from arona.scrcpy import Scrcpy
-from arona.imgreco import find_res, remove_res_color
-from arona.resource import parse_rect, res_value
+from arona.scrcpy import ADB
 
 if __name__ == '__main__':
     while True:
-        mat = Scrcpy.screencap_mat()
+        mat = ADB.screencap_mat()
         cv2.imshow("0", mat)
         cv2.waitKey(1)
 
