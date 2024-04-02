@@ -1,9 +1,9 @@
 pure-python-adb
-pyminitouch~=0.3.3
+pyminitouch
 opencv-contrib-python
-numpy~=1.25.2
-ruamel.yaml==0.17.32
-Pillow~=10.0.0
+numpy
+ruamel.yaml
+Pillow
 matplotlib
 cnocr
 cnstd

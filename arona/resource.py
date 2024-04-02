@@ -10,6 +10,7 @@ from .config import get_config
 
 resource_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../resources')
 
+yaml = ruamel_yaml.YAML(typ='rt')
 
 @functools.lru_cache()
 def _get_img_path_suffix():
@@ -29,7 +30,7 @@ def _get_resource_real_path(path: typing.Optional[str] = None) -> str:
 def _load_res_yaml():
     real_path = _get_resource_real_path("res.yaml")
     with open(real_path, 'r', encoding='utf-8') as f:
-        data = ruamel_yaml.load(f.read(), Loader=ruamel_yaml.RoundTripLoader)
+        data = yaml.load(f.read())
     return data
 
 

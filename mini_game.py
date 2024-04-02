@@ -7,6 +7,8 @@ from arona.adb import MNT, ADB
 from arona.imgreco import match_res
 from arona.presser import wait_n_press_res
 
+yaml = ruamel_yaml.YAML(typ='rt')
+
 if __name__ == '__main__':
 
     print()
@@ -30,7 +32,7 @@ if __name__ == '__main__':
         map_path = ""
     assert map_path != "", "未匹配到关卡"
     with open(map_path, 'r', encoding='utf-8') as f:
-        data = ruamel_yaml.load(f.read(), Loader=ruamel_yaml.RoundTripLoader)
+        data = yaml.load(f.read())
         map_notes = data['notes']
         unit_time = data['unit']
     map_notes = [(str(i).split(', ')[0], float(str(i).split(', ')[1]) * unit_time) for i in map_notes]

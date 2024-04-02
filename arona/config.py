@@ -7,6 +7,7 @@ from ruamel import yaml as ruamel_yaml
 
 config_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../config')
 
+yaml = ruamel_yaml.YAML(typ='rt')
 
 @functools.lru_cache()
 def _get_config_real_path(path: typing.Optional[str] = None) -> str:
@@ -23,7 +24,7 @@ def _load_config(relative_path: str):
     real_path = _get_config_real_path(relative_path)
     assert os.path.exists(real_path), real_path + '未能检测到yaml文件.'
     with open(real_path, 'r', encoding='utf-8') as f:
-        data = ruamel_yaml.load(f.read(), Loader=ruamel_yaml.RoundTripLoader)
+        data = yaml.load(f.read())
     return data
 
 
