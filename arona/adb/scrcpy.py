@@ -3,21 +3,20 @@ import os.path
 import queue
 import socket
 import subprocess
-import threading
 import time
 import typing
 from collections import namedtuple
 from pathlib import Path
 
+import adbutils
 import cv2
 import numpy as np
-import ppadb.device
-import pyminitouch
-from ppadb.client import Client
+import scrcpy
 
-from . import imgops
-from . import resource as res
-from .config import get_config
+from .. import imgops
+from .. import resource as res
+from ..config import get_config
+from ..utils import try_until_succ
 
 Size = namedtuple("Size", ['width', 'height'])
 Pos = namedtuple("Pos", ['x', 'y'])
@@ -40,30 +39,97 @@ def get_adb_path() -> str:
     return path
 
 
-pyminitouch.connection.config.ADB_EXECUTOR = get_adb_path()
-pyminitouch.connection._ADB = pyminitouch.connection.config.ADB_EXECUTOR
-
-
-def get_adb_device() -> str:
-    return get_config("user_config.yaml/adb/device")
-
-
 # Static class(?)
 class ADB:
-    _device: ppadb.device.Device = None
+    _adb_client: adbutils.AdbClient = None
+    _adb_device: adbutils.AdbDevice = None
+    _scrcpy_client: scrcpy.Client = None
     _touch_dev: str = get_config("arona.yaml/device.touch.dev")
 
     _mat_queue: queue.Queue = queue.Queue(maxsize=1)
-    _cap_daemon_run = False
-    _cap_daemon_thread = None
     _mat_prev: np.array = None
     _tapped = False
 
+    _framerate = 10
+
     _loading = 1
 
+    _loading_anchor = None
+    _loading_mask = None
+    _loading_template = None
+
     @classmethod
-    def screencap_daemon(cls):
-        cls._cap_daemon_run = True
+    def is_loading(cls):
+        if not cls.adb_connected() or not cls.scrcpy_connected():
+            cls.connect()
+        return cls._loading > 0
+
+    @classmethod
+    def get_loading_countdown(cls):
+        if not cls.adb_connected() or not cls.scrcpy_connected():
+            cls.connect()
+        return cls._loading
+
+    @classmethod
+    def start_adb_server(cls, host="127.0.0.1", port=5037):
+        try:
+            cls._adb_client.server_version()
+        except:
+            cls._adb_client = adbutils.AdbClient(host=host, port=port)
+        try:
+            return cls._adb_client.server_version()
+        except:
+            raise RuntimeError("ADB server failed to start")
+
+    @classmethod
+    def kill_adb_server(cls):
+        cls._adb_client.server_kill()
+
+    @classmethod
+    def connect_adb_device(cls):
+        device_cfg = get_config("user_config.yaml/adb.device")
+        try:
+            if ":" in device_cfg:
+                cls._adb_client.connect(device_cfg)
+                cls._adb_device = cls._adb_client.device(device_cfg)
+            else:
+                for dev in cls._adb_client.device_list():
+                    if dev.serial == device_cfg:
+                        cls._adb_device = dev
+                        break
+                else:
+                    cls._adb_device = cls._adb_client.device()
+            cls._adb_device.app_current()
+            return True
+        except:
+            raise RuntimeError("Device not found")
+
+    @classmethod
+    def adb_connected(cls):
+        try:
+            cls._adb_device.app_current()
+            return True
+        except:
+            return False
+
+    @classmethod
+    def scrcpy_connected(cls):
+        return cls._scrcpy_client.alive
+
+    @classmethod
+    def connect_scrcpy(cls):
+        if not cls.adb_connected():
+            cls.start_adb_server()
+            cls.connect_adb_device()
+        bitrate = get_config("arona.yaml/scrcpy.bitrate")
+        cls._framerate = get_config("arona.yaml/scrcpy.framerate")
+        cls._scrcpy_client = scrcpy.Client(device=cls._adb_device, bitrate=bitrate, max_fps=cls._framerate, )
+        cls._scrcpy_client.add_listener(scrcpy.EVENT_INIT, cls.listener_init)
+        cls._scrcpy_client.add_listener(scrcpy.EVENT_FRAME, cls.listener_on_frame)
+        cls._scrcpy_client.start(daemon_threaded=True)
+
+    @classmethod
+    def listener_init(cls):
         path_template_loading: str = res.res_value("navigation.loading")
         anchor = path_template_loading.split("-")[:4]
         anchor = [int(x) for x in anchor]  # x1, y1, x2, y2
@@ -74,98 +140,47 @@ class ADB:
         mat_template = mat_template[:, :, :3]
         # mat_template to CV8U
         mat_template = cv2.bitwise_and(mat_template, mat_template, mask=mask)
-        try:
-            while cls._cap_daemon_run:
-                mat = cls._screencap_mat()
-                if mat is None:
-                    continue
-                mat_cropped = mat[anchor[1]:anchor[3], anchor[0]:anchor[2]]
-                mat_cropped = cv2.bitwise_and(mat_cropped, mat_cropped, mask=mask)
-                match = 1 - cv2.matchTemplate(mat_cropped, mat_template, cv2.TM_SQDIFF_NORMED)[0, 0]
-                if match > 0.9:
-                    cls._loading = 3
-                elif cls._loading > 0:
-                    cls._loading -= 1
-                if not cls._mat_queue.empty():
-                    cls._mat_queue.get()
-                if cls._tapped:
-                    cls._tapped = False
-                    continue
-                cls._mat_queue.put(mat)
-        except KeyboardInterrupt:
+        cls._loading_anchor = anchor
+        cls._loading_mask = mask
+        cls._loading_template = mat_template
+
+    @classmethod
+    def listener_on_frame(cls, frame):
+        if cls._loading_anchor is None:
+            cls.listener_init()
+        if frame is None:
             return
-
-    @classmethod
-    def is_loading(cls):
-        if cls._device is None:
-            cls.connect()
-        if not cls._cap_daemon_run:
-            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon, daemon=True)
-            cls._cap_daemon_run = True
-            cls._cap_daemon_thread.start()
-        return cls._loading > 0
-
-    @classmethod
-    def get_loading_countdown(cls):
-        if cls._device is None:
-            cls.connect()
-        if not cls._cap_daemon_run:
-            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon, daemon=True)
-            cls._cap_daemon_run = True
-            cls._cap_daemon_thread.start()
-        return cls._loading
-
-    @classmethod
-    def start_adb_server(cls):
-        p = subprocess.Popen([get_adb_path(), 'start-server'])
-        while p.wait():
-            time.sleep(0.5)
-
-    @classmethod
-    def kill_adb_server(cls):
-        p = subprocess.Popen([get_adb_path(), 'kill-server'])
-        while p.wait():
-            time.sleep(0.5)
-
-    @classmethod
-    def start_adb_client(cls, host: str = "127.0.0.1", port: int = 5037) -> Client:
-        client = Client(host, port)
-        try:
-            client.version()  # 尝试进行实际通讯
-        except RuntimeError:
-            cls.start_adb_server()
-            client = Client(host, port)
-            client.version()
-        return client
+        mat_cropped = frame[cls._loading_anchor[1]:cls._loading_anchor[3],
+                      cls._loading_anchor[0]:cls._loading_anchor[2]]
+        mat_cropped = cv2.bitwise_and(mat_cropped, mat_cropped, mask=cls._loading_mask)
+        match = 1 - cv2.matchTemplate(mat_cropped, cls._loading_template, cv2.TM_SQDIFF_NORMED)[0, 0]
+        if match > 0.9:
+            cls._loading = int(0.75 * cls._framerate)
+        elif cls._loading > 0:
+            cls._loading -= 1
+        if not cls._mat_queue.empty():
+            cls._mat_queue.get()
+        if cls._tapped:
+            cls._tapped = False
+        cls._mat_queue.put(frame)
 
     @classmethod
     def connect(cls):
-        client = cls.start_adb_client()
-
-        device_name = get_adb_device()
-        # if device is IP:addr
-        if device_name.find(":") != -1:
-            host, port = device_name.split(":")
-            assert client.remote_connect(host, int(port))
-
-        for dev in client.devices():
-            if dev.serial == device_name:
-                cls._device = dev
-                break
-        else:
-            raise RuntimeError("Device not found")
-
-        if not cls._cap_daemon_run:
-            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon, daemon=True)
-            cls._cap_daemon_run = True
-            cls._cap_daemon_thread.start()
+        try_until_succ(cls.start_adb_server)
+        try:
+            try_until_succ(cls.connect_adb_device)
+        except:
+            cls.kill_adb_server()
+            cls.start_adb_server()
+            cls.connect_adb_device()
+        try_until_succ(cls.connect_scrcpy)
 
     @classmethod
     @functools.lru_cache()
     def get_resolution(cls) -> typing.Optional[Size]:
-        if cls._device is None:
+        if not cls.adb_connected() or not cls.scrcpy_connected():
             cls.connect()
-        size = cls._device.wm_size()
+        size = cls._scrcpy_client.resolution
         if size is not None:
             if size[0] > size[1]:
                 long = size[0]
@@ -178,39 +193,9 @@ class ADB:
             return None
 
     @classmethod
-    def _screencap_raw(cls) -> str:
-        # cat /proc/net/arp | grep :    -> NcAddress
-        screenshot_ttl = 0.2
-        if cls._device is None:
-            cls.connect()
-        error_counter = 0
-        while error_counter < 5:
-            try:
-                img = cls._device.screencap()
-                return img
-            except RuntimeError:
-                print("ADB FAILURE, restarting ADB server...")
-                ADB.kill_adb_server()
-                ADB.start_adb_server()
-                cls.connect()
-                error_counter += 1
-                continue
-        raise RuntimeError("ADB FAILURE")
-        # if time.monotonic() - cls._prev_screenshot_timestamp > screenshot_ttl or force:
-        #     cls._prev_screenshot_raw = cls._device.screencap()
-        #     cls._prev_screenshot_timestamp = time.monotonic()
-        #     return cls._prev_screenshot_raw
-        # else:
-        #     return cls._prev_screenshot_raw
-
-    @classmethod
     def screencap_mat(cls, force=False, allow_loading=False) -> np.array:
-        if cls._device is None:
+        if not cls.adb_connected() or not cls.scrcpy_connected():
             cls.connect()
-        if not cls._cap_daemon_run:
-            cls._cap_daemon_thread = threading.Thread(target=cls.screencap_daemon, daemon=True)
-            cls._cap_daemon_run = True
-            cls._cap_daemon_thread.start()
         if not allow_loading:
             while cls._loading > 0:
                 time.sleep(0.1)
@@ -222,17 +207,17 @@ class ADB:
             return cls._mat_prev
         else:
             try:
-                cls._mat_prev = cls._mat_queue.get(block=True, timeout=None if force else 4)
+                cls._mat_prev = cls._mat_queue.get(block=True, timeout=None if force else 15)
             except queue.Empty:
                 return cls._screencap_mat()
             return cls._mat_prev
 
     @classmethod
     def _screencap_mat(cls, std_size: bool = True, gray=False) -> np.array:
-        if cls._device is None:
+        if not cls.adb_connected() or not cls.scrcpy_connected():
             cls.connect()
-        img_np = np.frombuffer(cls._screencap_raw(), dtype=np.uint8)
-        img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+        img_pil = cls._adb_device.screenshot()
+        img = np.array(img_pil)
         if std_size:
             size = cls.get_resolution()
             config_height = get_config("arona.yaml/device/resolution/height")
@@ -255,21 +240,9 @@ class ADB:
 
     @classmethod
     def get_top_activity(cls):
-        if cls._device is None:
+        if not cls.adb_connected() or not cls.scrcpy_connected():
             cls.connect()
-        return cls._device.get_top_activity()
-
-    @classmethod
-    def input_text(cls, string: str):
-        if cls._device is None:
-            cls.connect()
-        return cls._device.input_text(string)
-
-    @classmethod
-    def input_keyevent(cls, keycode, long_press=False):
-        if cls._device is None:
-            cls.connect()
-        return cls._device.input_keyevent(keycode, long_press)
+        return cls._adb_device.app_current().activity
 
     @classmethod
     def input_tap(cls, x, y):
@@ -279,16 +252,16 @@ class ADB:
         x, y = eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
 
         if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
-            if cls._device is None:
+            if not cls.adb_connected() or not cls.scrcpy_connected():
                 cls.connect()
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
         elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
             MNT.send(f"d 0 {x} {y} 0\nc\nw 2\nu 0\nc\nw 2\n")
         cls._mat_prev = None
@@ -302,13 +275,13 @@ class ADB:
         x, y = eval(repr_x, {'x': x, 'y': y}), eval(repr_y, {'x': x, 'y': y})
 
         if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
-            if cls._device is None:
+            if not cls.adb_connected() or not cls.scrcpy_connected():
                 cls.connect()
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(x))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(y))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
         elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
             MNT.send(f"d {idx} {x} {y} 0\nc\nw 2\n")
         cls._mat_prev = None
@@ -317,11 +290,11 @@ class ADB:
     @classmethod
     def input_press_up(cls, idx=0):
         if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
-            if cls._device is None:
+            if not cls.adb_connected() or not cls.scrcpy_connected():
                 cls.connect()
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
         elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
             MNT.send(f"u {idx}\nc\nw 2\n")
         cls._mat_prev = None
@@ -353,27 +326,27 @@ class ADB:
         end_x, end_y = converter(end_x, end_y)
 
         if get_config("arona.yaml/device.touch.preferred_mode") == 'adb':
-            if cls._device is None:
+            if not cls.adb_connected() or not cls.scrcpy_connected():
                 cls.connect()
 
             # get ms time
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 1")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 1")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 1")
             time_start = int(round(time.time() * 1000))
             while time.time() * 1000 - time_start < duration_ms:
-                cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(start_x + (end_x - start_x) * (
+                cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(start_x + (end_x - start_x) * (
                         time.time() * 1000 - time_start) / duration_ms)))
-                cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(start_y + (end_y - start_y) * (
+                cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(start_y + (end_y - start_y) * (
                         time.time() * 1000 - time_start) / duration_ms)))
-                cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+                cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
                 # time.sleep(0.01)
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(end_x)))
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(end_y)))
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 53 " + str(int(end_x)))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 54 " + str(int(end_y)))
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
             time.sleep(hold_time_ms / 1000)
-            cls._device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
-            cls._device.shell(f"sendevent {cls._touch_dev} 1 330 0")
-            cls._device.shell(f"sendevent {cls._touch_dev} 0 0 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 3 57 4294967295")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 1 330 0")
+            cls._adb_device.shell(f"sendevent {cls._touch_dev} 0 0 0")
         elif get_config("arona.yaml/device.touch.preferred_mode") == 'minitouch':
             MNT.send(f"d 0 {start_x} {start_y} 0\nc\nw 2\n")
             # get ms time
@@ -437,23 +410,10 @@ class ADB:
         cls.input_swipe(int(pos1.x), int(pos1.y), int(pos2.x), int(pos2.y), duration_ms, hold_time_ms)
 
     @classmethod
-    def input_roll(cls, dx, dy):
-        if cls._device is None:
-            cls.connect()
-        return cls._device.input_roll(dx, dy)
-
-    @classmethod
-    def create_connection(cls):
-        if cls._device is None:
-            cls.connect()
-        conn = cls._device.create_connection()
-        return conn
-
-    @classmethod
     def get_device_object(cls):
-        if cls._device is None:
+        if not cls.adb_connected():
             cls.connect()
-        return cls._device
+        return cls._adb_device
 
 
 def is_port_open(port):
@@ -573,10 +533,10 @@ class MNT:
 #
 #         cls._port = 16380
 #
-#         abi: str = ADB.get_device_object().shell('getprop ro.product.cpu.abi').strip()
-#         sdk: int = int(ADB.get_device_object().shell('getprop ro.build.version.sdk').strip())
-#         pre: str = ADB.get_device_object().shell('getprop ro.build.version.preview_sdk').strip()
-#         rel: str = ADB.get_device_object().shell('getprop ro.build.version.release').strip()
+#         abi: str = Scrcpy.get_adb_device_object().shell('getprop ro.product.cpu.abi').strip()
+#         sdk: int = int(Scrcpy.get_adb_device_object().shell('getprop ro.build.version.sdk').strip())
+#         pre: str = Scrcpy.get_adb_device_object().shell('getprop ro.build.version.preview_sdk').strip()
+#         rel: str = Scrcpy.get_adb_device_object().shell('getprop ro.build.version.release').strip()
 #
 #         if pre and int(pre) > 0:
 #             sdk += 1
@@ -592,17 +552,17 @@ class MNT:
 #             bin = "minicap-nopie"
 #
 #         dir = "/data/local/tmp/minicap-devel"
-#         ADB.get_device_object().shell(f'mkdir {dir} 2>/dev/null || true')
+#         Scrcpy.get_adb_device_object().shell(f'mkdir {dir} 2>/dev/null || true')
 #
 #         basepath = get_adb_path()
 #         basepath = basepath[:basepath.rfind(os.path.sep)]  # remove adb.exe from basepath
 #         basepath = os.path.join(basepath, "minicap")
 #
 #         # Push minicap binary
-#         ADB.get_device_object().push(f'{basepath}/{abi}/bin/{bin}', f'{dir}/{bin}')
-#         ADB.get_device_object().push(f'{basepath}/libs/android-{sdk}/{abi}/minicap.so', f'{dir}/minicap.so')
+#         Scrcpy.get_adb_device_object().push(f'{basepath}/{abi}/bin/{bin}', f'{dir}/{bin}')
+#         Scrcpy.get_adb_device_object().push(f'{basepath}/libs/android-{sdk}/{abi}/minicap.so', f'{dir}/minicap.so')
 #
-#         ADB.get_device_object().shell(f'chmod 777 {dir}/{bin} {dir}/{bin}.so')
+#         Scrcpy.get_adb_device_object().shell(f'chmod 777 {dir}/{bin} {dir}/{bin}.so')
 #
 #         # Start minicap & forwarding
 #         res = subprocess.Popen(

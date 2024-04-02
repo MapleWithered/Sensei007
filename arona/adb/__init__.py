@@ -1,4 +1,5 @@
-from . import scrcpy, adb_legacy, config
+from . import scrcpy, adb_legacy
+from .. import config
 
 # when import this adb.py, read config file to decide whether scrcpy.ADB or adb_legacy.ADB should be used
 
