@@ -5,6 +5,14 @@ startup:
 scrcpy:
   bitrate: 100000000
   framerate: 10
+adb:
+  path: .\resources\adb\adb.exe
+ocr:
+  type: paddleocr_json # paddleocr_json / rapidocr_json / cnocr
+  paddleocr_json:
+    path: .\resources\ocr\PaddleOCR-json_v.1.3.1\PaddleOCR-json.exe
+  rapidocr_json:
+    path: .\resources\ocr\RapidOCR-json_v0.2.0\RapidOCR-json.exe
 device:
   resolution:
     width: 1920

@@ -6,8 +6,8 @@ import numpy as np
 from . import presser
 from .adb import ADB
 from .config import get_config
-from .imgreco import find_res, remove_res_color, match_res_color, find_res_all, ocr_list
-from .imgreco import match_res
+from .imgreco import find_res, remove_res_color, match_res_color, find_res_all, match_res
+from .ocr import OCR
 from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match, swipe_res
 from .resource import res_value, parse_rect
 
@@ -22,7 +22,7 @@ def get_invite_list():
     width = res_value("cafe.visit.name.width")
     height = res_value("cafe.visit.name.height")
     list_pos = [[x[0] + dx, x[1] + dy, x[0] + dx + width, x[1] + dy + height] for x in btn_pos]
-    student_list = ocr_list(list_pos, mode='cn', force=False)
+    student_list = OCR.ocr_list(list_pos, mode='cn', force=False)
     # print(student_list)
     student_list = [[student_list[i]['text'], list_pos[i], btn_pos[i]] for i in range(len(student_list))]
     return student_list
@@ -151,8 +151,10 @@ def run_cafe(force=False):
             press_res("cafe.visit.btn_close", 2)
         else:
             ADB.input_press_rect(*res)
+            # TODO: handle一下更换服装的情况（更换服装或确认邀请，二选一）
             wait_n_press_res("cafe.visit.btn_confirm_invite")
             time.sleep(5)
+            # TODO: 这里要 handle 一下邀请失败的情况 加个等待回到咖啡馆主界面的逻辑
 
     counter = 0
     while counter < 2:

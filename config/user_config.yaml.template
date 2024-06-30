@@ -1,13 +1,22 @@
 
 # ADB
 adb:
-  path: .\adb\adb.exe
   device: 127.0.0.1:16384
 timer:
   - 7:30
   - 19:30
 cafe:
   empty_preset_slot: 3
+competition:
+  strategy:
+    # level_tolerance: 默认优先尝试攻击 对手等级<=自身等级+level_tolerance 的对手。当多个对手满足条件时，优先攻击排名最高的对手。
+    level_tolerance: 0
+    # fallback_slot: 当没有满足条件的对手时，攻击的默认对手[排名由高到低分别为1-3，0为不攻击]
+    fallback_slot: 3
+    # e.g.
+    # - 仅使用naive策略，攻击固定slot3对手：level_tolerance=-100, fallback_slot=3
+    # - 攻击等级小于自身等级的选手，若是找不到则攻击slot2对手：level_tolerance=-1, fallback_slot=2
+    # - 攻击等级小于等于自身等级的选手，若是找不到则跳过竞技场，留给用户手动操作：level_tolerance=0, fallback_slot=0
 task:
   cafe:
     invite: 睦月（新年）

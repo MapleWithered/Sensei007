@@ -161,3 +161,6 @@ cython_debug/
 
 # User config
 config/user_config.yaml
+
+# OCR vendor
+resources/ocr/

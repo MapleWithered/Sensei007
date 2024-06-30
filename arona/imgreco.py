@@ -1,14 +1,10 @@
 import cv2
 import numpy as np
-from cnocr import CnOcr
 
 from . import imgops
 from . import resource as res
 from .adb import ADB
 from .demoviewer import demoviewer
-
-ocr_std_en = CnOcr(det_model_name='en_PP-OCRv3_det', rec_model_name='en_PP-OCRv3')
-ocr_std_cn = CnOcr()
 
 
 def find_res(res_path: str, threshold: float = 0.99, norm=True):
@@ -219,50 +215,3 @@ def compare_mat(img1, img2, strict=False):
     else:
         result = 1 - cv2.matchTemplate(temp1, temp2, cv2.TM_SQDIFF)[0, 0]
     return result
-
-
-def ocr(x1, x2, y1, y2, mode='cn', std=False, force=True):
-    model = None
-    match mode:
-        case "digit":
-            model = ocr_std_en
-        case "en":
-            model = ocr_std_en
-        case _:
-            model = ocr_std_cn
-
-    mat = ADB.screencap_mat(force=force)
-
-    demoviewer.show_img([[x1, y1, x2, y2]])
-
-    mat = mat[y1:y2, x1:x2]
-
-    if std:
-        return model.ocr(mat)
-    else:
-        return model.ocr_for_single_line(mat)
-
-
-def ocr_res(res_path: str, mode='cn', std=False, force=True):
-    res_data = res.res_value(res_path)
-    x1, y1, x2, y2 = [int(x) for x in res_data.split('-')]
-    return ocr(x1, x2, y1, y2, mode=mode, std=std, force=force)
-
-
-def ocr_list(list_pos, mode='cn', force=True):
-    mat_screen = ADB.screencap_mat(force=force)
-
-    demoviewer.show_img(list_pos)
-
-    mat_list = [mat_screen[y1:y2, x1:x2] for x1, y1, x2, y2 in list_pos]
-
-    model = None
-    match mode:
-        case "digit":
-            model = ocr_std_en
-        case "en":
-            model = ocr_std_en
-        case _:
-            model = ocr_std_cn
-
-    return model.ocr_for_single_lines(mat_list)

@@ -8,7 +8,7 @@ from ruamel import yaml as ruamel_yaml
 
 from .config import get_config
 
-resource_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../resources')
+resource_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), '../resources/imgreco')
 
 yaml = ruamel_yaml.YAML(typ='rt')
 

@@ -1,15 +1,16 @@
 import time
 
 from .adb import ADB
-from .imgreco import match_res, ocr_res
-from .imgreco import match_res_color, find_res_all, ocr_list
+from .config import get_config
+from .imgreco import match_res, match_res_color, find_res_all
+from .ocr import OCR
 from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
 from .resource import res_value
 
 
 def get_level():
     wait_res("battle.level_anchor")
-    return ocr_res("battle.level_ocr", mode='digit', std=False)['text']
+    return OCR.ocr_res("battle.level_ocr", mode='digit', det='single_line')['text']
 
 
 def is_hard():
@@ -28,7 +29,7 @@ def get_stage_list():
     width = res_value("battle.stage_name.width")
     height = res_value("battle.stage_name.height")
     list_pos = [[x[0] + dx, x[1] + dy, x[0] + dx + width, x[1] + dy + height] for x in list_pos]
-    stage_list = ocr_list(list_pos, mode='cn', force=False)
+    stage_list = OCR.ocr_list(list_pos, mode='cn', force=False)
     # print(stage_list)
     for stage in stage_list:
         stage['text'] = stage['text'].replace(' ', '').replace('—', '-').replace('一', '-').replace('O', '0')
@@ -185,34 +186,42 @@ def run_competition():
     if press_res_if_match("competition.btn_award_daily_avail"):
         wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)
 
-    my_level = int(ocr_res("competition.my_level_ocr", mode='digit', std=False)['text'])
+    my_level = int(OCR.ocr_res("competition.my_level_ocr", mode='digit', det='single_line')['text'])
 
     stair_allow = 1
 
     counter = 0
 
-    while stair_allow <= 3:
-        res = ocr_res("competition.ticket_ocr", mode='en', std=False)
+    while stair_allow <= 4:
+        res = OCR.ocr_res("competition.ticket_ocr", mode='en', det='single_line')
         if res['text'][0] not in ['1', '2', '3', '4', '5']:
             break
 
-        levels = [int(ocr_res(f"competition.level_ocr.{i}", mode='digit', std=False)['text']) for i in range(1, 4)]
+        levels = [int(OCR.ocr_res(f"competition.level_ocr.{i}", mode='digit', det='single_line')['text']) for i in
+                  range(1, 4)]
         # print(levels)
 
-        for i in range(1, stair_allow + 1):
-            if levels[i - 1] < my_level:
+        for i in range(1, min(4, stair_allow + 1)):
+            if levels[i - 1] <= my_level + get_config("user_config.yaml/competition.strategy.level_tolerance"):
                 press_res(f"competition.level_ocr.{i}")
                 handle_battle()
                 break
         else:
-            press_res("competition.btn_update", wait=1)
-            while ADB.is_loading():
-                time.sleep(1)
-            counter += 1
-
-        if counter >= 20:
-            counter = 0
-            stair_allow += 1
+            if stair_allow <= 3:
+                press_res("competition.btn_update", wait=1)
+                while ADB.is_loading():
+                    time.sleep(1)
+                counter += 1
+                if counter >= 20:
+                    counter = 0
+                    stair_allow += 1
+            else:
+                fallback_stage = get_config("user_config.yaml/competition.strategy.fallback_slot")
+                if 1 <= fallback_stage <= 3:
+                    press_res(f"competition.level_ocr.{fallback_stage}")
+                    handle_battle()
+                else:
+                    break
 
     if press_res_if_match("competition.btn_award_time_avail"):
         wait_n_press_res("award.anchor", fore_wait=0, post_wait=1)

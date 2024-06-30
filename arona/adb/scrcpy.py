@@ -25,18 +25,13 @@ Color = namedtuple("Color", ['r', 'g', 'b'])
 
 
 def get_adb_path() -> str:
-    path = ""
-    try:
-        path = get_config("user_config.yaml/adb/path")
-        if not os.path.exists(path):
-            path = os.path.join(str(Path(__file__).parent), path)
-        if not os.path.exists(path):
-            path = os.path.join(os.path.join(str(Path(__file__).parent), "adb"), "adb.exe")
-        if not os.path.exists(path):
-            path = os.path.join(os.path.join(str(Path(__file__).parent.parent), "adb"), "adb.exe")
-    except:
-        path = os.path.join(os.path.join(str(Path(__file__).parent), "adb"), "adb.exe")
+    path = get_config("arona.yaml/adb/path")
+    if not path.endswith(".exe"):
+        raise FileNotFoundError("ADB Path should be a .exe file")
+    if not os.path.exists(path):
+        raise FileNotFoundError("ADB path not found")
     return path
+
 
 
 # Static class(?)

@@ -4,7 +4,8 @@ import cv2
 
 from .adb import ADB
 from .config import get_config
-from .imgreco import find_res_all, ocr_res, match_res
+from .imgreco import find_res_all, match_res
+from .ocr import OCR
 from .presser import wait_res, press_res, wait_n_press_res
 from .resource import res_value, parse_rect
 
@@ -96,8 +97,8 @@ def handle_stage_two():
     priority_list = []
     for i in range(5):
         press_res(f"alchemy.stage2.badge_left.{i + 1}", wait=0.25)
-        title = ocr_res("alchemy.stage2.ocr_title", mode='cn', std=True, force=True)[0]['text']
-        description = ocr_res("alchemy.stage2.ocr_description", mode='cn', std=True)[0]['text']
+        title = OCR.ocr_res("alchemy.stage2.ocr_title", mode='cn', det='std', force=True)[0]['text']
+        description = OCR.ocr_res("alchemy.stage2.ocr_description", mode='cn', det='std')[0]['text']
         priority_list.append((i, match_priority(title, description)))
         if i in gold_index:
             priority_list[-1] = (i, priority_list[-1][1] - 100)

@@ -4,7 +4,8 @@ import time
 import numpy as np
 
 from .adb import ADB
-from .imgreco import ocr_res, match_res
+from .imgreco import match_res
+from .ocr import OCR
 from .presser import wait_res, press_res, wait_n_press_res, press_res_if_match
 from .resource import res_value
 
@@ -78,7 +79,7 @@ def run_schedule():
 
     goto_schedule()
 
-    ticket = int(ocr_res("schedule.ticket_ocr", mode='en', std=False)['text'][0])
+    ticket = int(OCR.ocr_res("schedule.ticket_ocr", mode='en', det='single_line')['text'][0])
     # TODO: total_ticket recognition
 
     if ticket != 0:
